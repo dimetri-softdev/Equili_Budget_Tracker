@@ -1,6 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    A custom shape for the "Glassmorphism" effect used in cards and input fields.
+    Uses semi-transparent backgrounds and subtle borders defined in the theme.
+-->
 <shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Semi-transparent color from theme -->
     <solid android:color="?attr/appCardBackground"/>
+
+    <!-- Rounded corners for a modern look -->
     <corners android:radius="12dp"/>
+
+    <!-- Subtle border to define the card edge -->
     <stroke android:width="1dp" android:color="?attr/appCardStroke"/>
 </shape>

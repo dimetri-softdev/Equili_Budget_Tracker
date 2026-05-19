@@ -1,17 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    Layout for RegisterActivity.
+    Used for creating new user accounts. Includes validation and logo branding.
+-->
 <FrameLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- Background -->
+    <!-- Global Background -->
     <ImageView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:src="@drawable/background"
         android:scaleType="centerCrop"/>
 
-    <!-- Dark overlay -->
+    <!-- Theme-sensitive overlay -->
     <View
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -24,6 +28,7 @@
         android:gravity="center"
         android:padding="24dp">
 
+        <!-- Logo and App Name -->
         <ImageView
             android:layout_width="100dp"
             android:layout_height="100dp"
@@ -38,6 +43,7 @@
             android:textStyle="bold"
             android:textColor="?attr/colorPrimary"/>
 
+        <!-- Screen Header -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -48,6 +54,7 @@
             android:layout_marginTop="16dp"
             android:layout_marginBottom="16dp"/>
 
+        <!-- Input: Email address -->
         <EditText
             android:id="@+id/etEmail"
             android:layout_width="match_parent"
@@ -59,6 +66,7 @@
             android:padding="12dp"
             android:background="@drawable/glass_card"/>
 
+        <!-- Input: Password with hidden characters -->
         <EditText
             android:id="@+id/etPassword"
             android:layout_width="match_parent"
@@ -71,6 +79,7 @@
             android:padding="12dp"
             android:background="@drawable/glass_card"/>
 
+        <!-- Action: Submit Registration -->
         <Button
             android:id="@+id/btnRegister"
             android:text="Register"

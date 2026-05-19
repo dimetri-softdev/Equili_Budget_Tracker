@@ -1,8 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    Gradient background for UI bars and accents.
+    Transitions from Equili Cyan to Dark Cyan.
+-->
 <shape xmlns:android="http://schemas.android.com/apk/res/android">
     <gradient
         android:startColor="#00FFFF"
         android:endColor="#008B8B"
         android:angle="90"/>
+
+    <!-- Slightly rounded edges -->
     <corners android:radius="4dp"/>
 </shape>

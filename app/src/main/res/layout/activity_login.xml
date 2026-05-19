@@ -1,17 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    Layout for LoginActivity.
+    Allows existing users to sign in using their email (username) and password.
+-->
 <FrameLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- Background -->
+    <!-- App-wide background image -->
     <ImageView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:src="@drawable/background"
         android:scaleType="centerCrop"/>
 
-    <!-- Blur overlay -->
+    <!-- Theme-sensitive dark overlay -->
     <View
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -24,6 +28,7 @@
         android:orientation="vertical"
         android:padding="24dp">
 
+        <!-- Branding: Logo and App Name -->
         <ImageView
             android:layout_width="100dp"
             android:layout_height="100dp"
@@ -38,6 +43,7 @@
             android:textStyle="bold"
             android:textColor="?attr/colorPrimary"/>
 
+        <!-- Credentials Input -->
         <EditText
             android:id="@+id/etUsername"
             android:layout_width="match_parent"
@@ -61,6 +67,7 @@
             android:padding="12dp"
             android:background="@drawable/glass_card"/>
 
+        <!-- Action: Perform Login -->
         <Button
             android:id="@+id/btnLogin"
             android:text="Login"

@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    Layout for a single onboarding slide.
+    Features a centered glass card containing an image, title, and description.
+-->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -6,6 +10,7 @@
     android:orientation="vertical"
     android:padding="32dp">
 
+    <!-- Information Card -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -14,6 +19,7 @@
         android:orientation="vertical"
         android:padding="32dp">
 
+        <!-- Slide Illustration -->
         <ImageView
             android:id="@+id/ivOnboarding"
             android:layout_width="150dp"
@@ -22,6 +28,7 @@
             android:scaleType="fitCenter"
             android:contentDescription="Onboarding Image"/>
 
+        <!-- Main Slide Heading -->
         <TextView
             android:id="@+id/tvTitle"
             android:layout_width="wrap_content"
@@ -33,6 +40,7 @@
             android:textStyle="bold"
             android:gravity="center"/>
 
+        <!-- Detailed Explanation Text -->
         <TextView
             android:id="@+id/tvDescription"
             android:layout_width="wrap_content"

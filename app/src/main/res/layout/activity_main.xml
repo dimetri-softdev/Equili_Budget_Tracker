@@ -1,11 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    Layout for MainActivity (Landing Screen).
+    Serves as the entry point for non-logged-in users.
+-->
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- 🌄 High-Quality Background -->
+    <!-- High-Quality Background Image -->
     <ImageView
         android:layout_width="0dp"
         android:layout_height="0dp"
@@ -16,7 +20,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 
-    <!-- 🌫 Gradient Overlay for Professional Feel -->
+    <!-- Theme Overlay -->
     <View
         android:layout_width="0dp"
         android:layout_height="0dp"
@@ -26,7 +30,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 
-    <!-- 🧘 BRANDING SECTION -->
+    <!-- BRANDING SECTION: Logo, App Name, and Slogan -->
     <ImageView
         android:id="@+id/ivLogoMain"
         android:layout_width="120dp"
@@ -62,7 +66,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 
-    <!-- 💰 ACTION CARD -->
+    <!-- ACTION CARD: Navigation buttons for Login and Registration -->
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -85,6 +89,7 @@
             android:layout_gravity="center"
             android:layout_marginBottom="24dp"/>
 
+        <!-- Button: Start Login Flow -->
         <Button
             android:id="@+id/btnLogin"
             android:layout_width="match_parent"
@@ -97,6 +102,7 @@
             android:textColor="@color/black"
             app:cornerRadius="12dp"/>
 
+        <!-- Button: Start Registration Flow -->
         <Button
             android:id="@+id/btnRegister"
             android:layout_width="match_parent"
