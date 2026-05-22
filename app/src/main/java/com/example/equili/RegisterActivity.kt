@@ -8,9 +8,12 @@ import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
+import com.example.equili.data.model.UserModel
 import com.example.equili.ui.viewModel.ExpenseViewModel
 import com.example.equili.utils.ValidationUtils
 import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.launch
 
 /**
  * RegisterActivity handles the creation of new user accounts.
@@ -62,20 +65,25 @@ class RegisterActivity : AppCompatActivity() {
             auth.createUserWithEmailAndPassword(email, password)
                 .addOnSuccessListener { result ->
                     // User created successfully in Firebase Auth!
-                    val uid = result.user?.uid
+                    val uid = result.user?.uid ?: ""
                     Log.i(TAG, "Successfully registered user with Firebase UID: $uid")
 
-                    // Save the user email to SharedPreferences to maintain the session
-                    getSharedPreferences("EquiliPrefs", MODE_PRIVATE).edit()
-                        .putString("CURRENT_USER", email)
-                        .apply()
+                    // Create user profile in Firestore
+                    lifecycleScope.launch {
+                        viewModel.registerUser(UserModel(uid = uid, email = email))
 
-                    Toast.makeText(this, "Registration Successful", Toast.LENGTH_SHORT).show()
+                        // Save the user email to SharedPreferences to maintain the session
+                        getSharedPreferences("EquiliPrefs", MODE_PRIVATE).edit()
+                            .putString("CURRENT_USER", email)
+                            .apply()
 
-                    // Proceed directly to the Dashboard
-                    val intent = Intent(this@RegisterActivity, DashboardActivity::class.java)
-                    startActivity(intent)
-                    finish()
+                        Toast.makeText(this@RegisterActivity, "Registration Successful", Toast.LENGTH_SHORT).show()
+
+                        // Proceed directly to the Dashboard
+                        val intent = Intent(this@RegisterActivity, DashboardActivity::class.java)
+                        startActivity(intent)
+                        finish()
+                    }
                 }
                 .addOnFailureListener { e ->
                     // Handle common errors (e.g., email already in use, network issues)

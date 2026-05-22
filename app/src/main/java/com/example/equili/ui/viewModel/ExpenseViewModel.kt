@@ -2,7 +2,6 @@ package com.example.equili.ui.viewModel
 
 import android.app.Application
 import androidx.lifecycle.*
-import com.example.equili.data.database.ExpenseDatabase
 import com.example.equili.data.model.*
 import com.example.equili.repository.ExpenseRepository
 import kotlinx.coroutines.Dispatchers
@@ -11,70 +10,44 @@ import java.util.*
 
 /**
  * ExpenseViewModel manages UI-related data for the app.
- * It handles logic for data filtering, gamification (XP, levels, streaks),
- * and interacts with the Repository for database operations.
+ * Migrated to Firebase for cloud-synced budget tracking.
  */
 class ExpenseViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val repository: ExpenseRepository
+    private val repository = ExpenseRepository()
 
-    // Reactive triggers for data fetching
-    private val currentUserEmail = MutableLiveData<String>()
     private val dateRange = MutableLiveData<Pair<Long, Long>>()
 
-    /** Observes the current user profile based on the active session email. */
-    val currentUser: LiveData<UserModel?> = currentUserEmail.switchMap { email ->
-        repository.getUserByEmailLiveData(email)
-    }
+    /** Observes the current user profile from Firebase. */
+    val currentUser: LiveData<UserModel?> = repository.getCurrentUserLiveData()
 
-    /**
-     * MediatorLiveData that combines user email and date range.
-     * Whenever either changes, it triggers dependent LiveData (like expensesInDateRange).
-     */
-    private val userAndRange = MediatorLiveData<Pair<String, Pair<Long, Long>>>().apply {
-        addSource(currentUserEmail) { email -> value = email to (dateRange.value ?: (0L to 0L)) }
-        addSource(dateRange) { range -> value = (currentUserEmail.value ?: "") to range }
-    }
+    /** List of all categories for the current user from cloud. */
+    val allCategories: LiveData<List<CategoryModel>> = repository.getAllCategories()
 
-    /** List of all categories for the current user. */
-    val allCategories: LiveData<List<CategoryModel>> = currentUserEmail.switchMap { email ->
-        repository.getAllCategories(email)
-    }
+    /** Current monthly spending goal from cloud. */
+    val monthlyGoal: LiveData<GoalModel?> = repository.getMonthlyGoal()
 
-    /** Current monthly spending goal for the user. */
-    val monthlyGoal: LiveData<GoalModel?> = currentUserEmail.switchMap { email ->
-        repository.getMonthlyGoal(email)
-    }
-
-    /** List of expenses filtered by the current user and selected date range. */
-    val expensesInDateRange: LiveData<List<ExpenseModel>> = userAndRange.switchMap { pair ->
-        repository.getExpensesInRange(pair.first, pair.second.first, pair.second.second)
+    /** List of expenses filtered by the selected date range. */
+    val expensesInDateRange: LiveData<List<ExpenseModel>> = dateRange.switchMap { range ->
+        repository.getExpensesInRange(range.first, range.second)
     }
 
     /** Sum of all expense amounts in the current filtered range. */
-    val totalAmountInDateRange: LiveData<Double?> = userAndRange.switchMap { pair ->
-        repository.getExpensesInRange(pair.first, pair.second.first, pair.second.second).map { list ->
-            list.sumOf { it.amount }
-        }
+    val totalAmountInDateRange: LiveData<Double?> = expensesInDateRange.map { list ->
+        list.sumOf { it.amount }
     }
 
     init {
-        // Initialize repository with database instance
-        val db = ExpenseDatabase.getDatabase(application)
-        repository = ExpenseRepository(db)
-
         // Set default date range to current month
         val start = Calendar.getInstance().apply { set(Calendar.DAY_OF_MONTH, 1); set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0) }
-        val end = Calendar.getInstance()
+        val end = Calendar.getInstance().apply { set(Calendar.HOUR_OF_DAY, 23); set(Calendar.MINUTE, 59) }
         dateRange.value = start.timeInMillis to end.timeInMillis
     }
 
-    /** Updates the active user session email. */
+    /** No longer needed as Firebase Auth manages the session, but kept for legacy UI compatibility if any. */
     fun setCurrentUser(email: String) {
-        currentUserEmail.value = email
+        // Firebase handles this internally
     }
-
-    fun getCurrentUserEmail(): String? = currentUserEmail.value
 
     /** Updates the filter range for expenses. */
     fun setDateRange(start: Long, end: Long) {
@@ -84,7 +57,7 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
     /** Inserts a new expense and rewards the user with XP and streak updates. */
     fun insertExpense(expense: ExpenseModel) = viewModelScope.launch(Dispatchers.IO) {
         repository.insertExpense(expense)
-        addXp(15) // Reward for logging data
+        addXp(15)
         updateStreak()
     }
 
@@ -94,33 +67,26 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
 
     fun insertCategory(category: CategoryModel) = viewModelScope.launch(Dispatchers.IO) {
         repository.insertCategory(category)
-        addXp(25) // Reward for customization
+        addXp(25)
     }
 
     fun updateGoal(min: Double, max: Double) = viewModelScope.launch(Dispatchers.IO) {
-        val email = currentUserEmail.value ?: return@launch
-        repository.updateGoal(GoalModel(userEmail = email, minGoal = min, maxGoal = max))
-        addXp(20) // Reward for financial planning
+        repository.updateGoal(GoalModel(minGoal = min, maxGoal = max))
+        addXp(20)
     }
 
     fun getCategoryTotalsInRange(start: Long, end: Long): LiveData<List<CategoryTotal>> {
-        val email = currentUserEmail.value ?: return MutableLiveData(emptyList())
-        return repository.getCategoryTotalsInRange(email, start, end)
+        return repository.getCategoryTotalsInRange(start, end)
     }
 
-    suspend fun registerUser(user: UserModel): Long = repository.registerUser(user)
+    suspend fun registerUser(user: UserModel) = repository.registerUser(user)
     suspend fun getUserByEmail(email: String): UserModel? = repository.getUserByEmail(email)
 
-    /**
-     * Internal logic for gamification XP.
-     * Handles level-ups when XP exceeds the requirement (100 XP per level).
-     */
     private fun addXp(amount: Int) = viewModelScope.launch(Dispatchers.IO) {
-        val email = currentUserEmail.value ?: return@launch
-        val user = repository.getUserByEmail(email) ?: return@launch
+        val userValue = repository.getCurrentUserLiveData().value ?: return@launch
 
-        var newXp = user.xp + amount
-        var newLevel = user.level
+        var newXp = userValue.xp + amount
+        var newLevel = userValue.level
 
         val xpNeeded = newLevel * 100
         if (newXp >= xpNeeded) {
@@ -128,33 +94,28 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
             newLevel++
         }
 
-        repository.updateUser(user.copy(xp = newXp, level = newLevel))
+        repository.updateUser(userValue.copy(xp = newXp, level = newLevel))
     }
 
-    /**
-     * Logic for tracking daily usage streaks.
-     * If user logs an expense on a consecutive day, the streak increases.
-     */
     private fun updateStreak() = viewModelScope.launch(Dispatchers.IO) {
-        val email = currentUserEmail.value ?: return@launch
-        val user = repository.getUserByEmail(email) ?: return@launch
+        val userValue = repository.getCurrentUserLiveData().value ?: return@launch
 
         val today = Calendar.getInstance().apply {
             set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
         }.timeInMillis
 
-        val lastDate = user.lastActionDate
+        val lastDate = userValue.lastActionDate
         val yesterday = today - (24 * 60 * 60 * 1000)
 
-        var newStreak = user.streak
+        var newStreak = userValue.streak
         if (lastDate < today) {
             if (lastDate >= yesterday) {
-                newStreak++ // Consecutive day
+                newStreak++
             } else {
-                newStreak = 1 // Reset streak if a day was missed
+                newStreak = 1
             }
-            repository.updateUser(user.copy(streak = newStreak, lastActionDate = today))
-            addXp(50) // Bonus for maintaining/starting a streak
+            repository.updateUser(userValue.copy(streak = newStreak, lastActionDate = today))
+            addXp(50)
         }
     }
 }

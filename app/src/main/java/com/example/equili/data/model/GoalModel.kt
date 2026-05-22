@@ -1,23 +1,21 @@
 package com.example.equili.data.model
 
-import androidx.room.Entity
-import androidx.room.PrimaryKey
 import java.io.Serializable
 
 /**
  * GoalModel represents the user's monthly spending limits.
- * The primary key is the userEmail, ensuring each user has exactly one set of goals.
+ * Updated for Firebase Firestore compatibility.
  */
-@Entity(tableName = "goal_table")
 data class GoalModel(
-
-    /** The user's email, acting as a unique identifier for their goal settings. */
-    @PrimaryKey
-    val userEmail: String,
+    /** The UID of the user who owns this goal. */
+    var userId: String = "",
 
     /** The minimum spending threshold the user aims for. */
-    val minGoal: Double,
+    val minGoal: Double = 0.0,
 
     /** The maximum spending limit for the month. */
-    val maxGoal: Double
-) : Serializable
+    val maxGoal: Double = 1000.0
+) : Serializable {
+    // Firestore requires a no-argument constructor
+    constructor() : this("", 0.0, 1000.0)
+}

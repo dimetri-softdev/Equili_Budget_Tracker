@@ -1,22 +1,17 @@
 package com.example.equili.data.model
 
-import androidx.room.Entity
-import androidx.room.PrimaryKey
 import java.io.Serializable
 
 /**
- * ExpenseModel represents an individual spending record in the database.
- * Implements Serializable to allow passing objects between activities via Intents.
+ * ExpenseModel represents an individual spending record.
+ * Updated for Firebase Firestore compatibility.
  */
-//@Entity(tableName = "expense_table")
 data class ExpenseModel(
+    /** Unique ID for the expense. */
+    var id: String = "",
 
-    /** Unique ID for the expense, automatically generated. */
-    //@PrimaryKey(autoGenerate = true)
-    val id: String = "",
-
-    /** The owner of the expense record. */
-    val userEmail: String = "",
+    /** The UID of the user who owns this record. */
+    var userId: String = "",
 
     /** A brief name or description for the expense. */
     val title: String = "",
@@ -36,10 +31,9 @@ data class ExpenseModel(
     /** The ending time of the expense activity. */
     val endTime: String = "",
 
-    /** Local file path to the attached receipt image, if any. */
+    /** Local or remote file path to the attached receipt image, if any. */
     val imagePath: String? = null
-) : Serializable{
-    // Firestore needs an empty constructor
-    constructor() : this("","","",0.0,"",0,"","",null)
-
+) : Serializable {
+    // Firestore requires a no-argument constructor
+    constructor() : this("", "", "", 0.0, "", 0, "", "", null)
 }

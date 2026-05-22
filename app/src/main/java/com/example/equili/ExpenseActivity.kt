@@ -153,8 +153,8 @@ class ExpenseActivity : AppCompatActivity() {
                     val amount = amountStr.toDouble()
                     // Create an ExpenseModel object with current inputs
                     val expense = ExpenseModel(
-                        id = existingExpense?.id ?: 0, // 0 for new record, existing ID for update
-                        userEmail = userEmail,
+                        id = existingExpense?.id ?: "", // Empty for new record, existing ID for update
+                        userId = "", // Handled by repository
                         title = title,
                         amount = amount,
                         category = category,

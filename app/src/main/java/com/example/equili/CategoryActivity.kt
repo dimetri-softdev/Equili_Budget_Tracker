@@ -56,8 +56,8 @@ class CategoryActivity : AppCompatActivity() {
         btnAdd.setOnClickListener {
             val name = etName.text.toString().trim()
             if (name.isNotEmpty()) {
-                // Save the new category linked to the current user
-                viewModel.insertCategory(CategoryModel(userEmail = userEmail, name = name))
+                // Save the new category
+                viewModel.insertCategory(CategoryModel(name = name))
                 etName.setText("") // Clear input field
                 Toast.makeText(this, "Category Added", Toast.LENGTH_SHORT).show()
             } else {
