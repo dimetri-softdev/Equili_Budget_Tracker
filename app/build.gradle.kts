@@ -3,7 +3,6 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.ksp)
     alias(libs.plugins.google.services)
 }
 
@@ -61,9 +60,6 @@ dependencies {
     // add bellow dependencies
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.4")
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.9.4")
-    implementation ("androidx.room:room-runtime:2.8.3")
-    ksp ("androidx.room:room-compiler:2.8.3")
-    implementation ("androidx.room:room-ktx:2.8.3")
     implementation ("androidx.recyclerview:recyclerview:1.4.0")
     implementation ("com.google.android.material:material:1.13.0")
 
