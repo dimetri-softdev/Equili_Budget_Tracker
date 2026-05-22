@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "591384709593",
+    "project_id": "equili-49c05",
+    "storage_bucket": "equili-49c05.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:591384709593:android:c1409097effbada5fc71c8",
+        "android_client_info": {
+          "package_name": "com.example.equili"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA_N6EXCKm-rYRgmft6rsh-VMDqHCXat68"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

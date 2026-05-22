@@ -8,24 +8,29 @@ import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.lifecycleScope
-import com.example.equili.data.model.UserModel
 import com.example.equili.ui.viewModel.ExpenseViewModel
 import com.example.equili.utils.ValidationUtils
-import kotlinx.coroutines.launch
+import com.google.firebase.auth.FirebaseAuth
 
 /**
  * RegisterActivity handles the creation of new user accounts.
- * Includes password validation and duplicate user checks.
+ * Now updated to use Firebase Authentication for cloud-based identity management.
  */
 class RegisterActivity : AppCompatActivity() {
 
     private val TAG = "RegisterActivity"
     private val viewModel: ExpenseViewModel by viewModels()
 
+    // Initialize Firebase Auth
+    private lateinit var auth: FirebaseAuth
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_register)
+
+        // --- Firebase Integration Start ---
+        auth = FirebaseAuth.getInstance()
+        // --- Firebase Integration End ---
 
         // UI component initialization
         val etEmail = findViewById<EditText>(R.id.etEmail)
@@ -51,25 +56,33 @@ class RegisterActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            // Step 3: Database check and User creation
-            lifecycleScope.launch {
-                Log.d(TAG, "Checking if user $email already exists in database")
-                val existingUser = viewModel.getUserByEmail(email)
-                if (existingUser != null) {
-                    Log.i(TAG, "Registration aborted: User $email already exists")
-                    // Prevent duplicate accounts
-                    Toast.makeText(this@RegisterActivity, "User already exists", Toast.LENGTH_SHORT).show()
-                } else {
-                    Log.i(TAG, "Registering new user: $email")
-                    // Register the new user in the database
-                    viewModel.registerUser(UserModel(email, password))
-                    Toast.makeText(this@RegisterActivity, "Registration Successful", Toast.LENGTH_SHORT).show()
+            // --- Firebase Registration Logic Start ---
+            Log.d(TAG, "Attempting to create Firebase user for: $email")
 
-                    // Proceed to login screen
-                    startActivity(Intent(this@RegisterActivity, LoginActivity::class.java))
+            auth.createUserWithEmailAndPassword(email, password)
+                .addOnSuccessListener { result ->
+                    // User created successfully in Firebase Auth!
+                    val uid = result.user?.uid
+                    Log.i(TAG, "Successfully registered user with Firebase UID: $uid")
+
+                    // Save the user email to SharedPreferences to maintain the session
+                    getSharedPreferences("EquiliPrefs", MODE_PRIVATE).edit()
+                        .putString("CURRENT_USER", email)
+                        .apply()
+
+                    Toast.makeText(this, "Registration Successful", Toast.LENGTH_SHORT).show()
+
+                    // Proceed directly to the Dashboard
+                    val intent = Intent(this@RegisterActivity, DashboardActivity::class.java)
+                    startActivity(intent)
                     finish()
                 }
-            }
+                .addOnFailureListener { e ->
+                    // Handle common errors (e.g., email already in use, network issues)
+                    Log.e(TAG, "Firebase registration failed: ${e.message}")
+                    Toast.makeText(this, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+            // --- Firebase Registration Logic End ---
         }
     }
 }
