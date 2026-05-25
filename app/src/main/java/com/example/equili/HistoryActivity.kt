@@ -2,20 +2,21 @@ package com.example.equili
 
 import android.app.DatePickerDialog
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.View
-import android.widget.AdapterView
-import android.widget.ArrayAdapter
-import android.widget.EditText
-import android.widget.Spinner
-import android.widget.TextView
+import android.widget.*
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.FileProvider
 import androidx.core.widget.addTextChangedListener
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.equili.data.model.ExpenseModel
 import com.example.equili.ui.adapter.ExpenseAdapter
 import com.example.equili.ui.viewModel.ExpenseViewModel
+import java.io.File
+import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -61,6 +62,7 @@ class HistoryActivity : AppCompatActivity() {
         val tvEnd = findViewById<TextView>(R.id.tvEndDate)
         val etSearch = findViewById<EditText>(R.id.etSearch)
         val spinnerSort = findViewById<Spinner>(R.id.spinnerSort)
+        val btnExport = findViewById<ImageButton>(R.id.btnExport)
         val recyclerView = findViewById<RecyclerView>(R.id.recyclerView)
 
         // Initialize ExpenseAdapter with click listeners for editing and deleting
@@ -123,6 +125,16 @@ class HistoryActivity : AppCompatActivity() {
             override fun onNothingSelected(parent: AdapterView<*>?) {}
         }
 
+        // Export Logic
+        btnExport.setOnClickListener {
+            val expenses = viewModel.filteredExpenses.value
+            if (!expenses.isNullOrEmpty()) {
+                exportExpensesToCsv(expenses)
+            } else {
+                Toast.makeText(this, "No data to export", Toast.LENGTH_SHORT).show()
+            }
+        }
+
         // Filter: Select start date
         tvStart.setOnClickListener {
             showDatePicker { date ->
@@ -183,5 +195,36 @@ class HistoryActivity : AppCompatActivity() {
             selected.set(y, m, d)
             onDateSelected(selected)
         }, c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH)).show()
+    }
+
+    /**
+     * Generates a CSV file from the filtered list of expenses and triggers a share Intent.
+     */
+    private fun exportExpensesToCsv(expenses: List<ExpenseModel>) {
+        val csvHeader = "Title,Amount,Category,Date\n"
+        val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+        val csvData = StringBuilder(csvHeader)
+
+        for (expense in expenses) {
+            csvData.append("${expense.title},${expense.amount},${expense.category},${sdf.format(Date(expense.date))}\n")
+        }
+
+        try {
+            val filename = "Equili_Expenses_${System.currentTimeMillis()}.csv"
+            val file = File(cacheDir, filename)
+            FileOutputStream(file).use { it.write(csvData.toString().toByteArray()) }
+
+            val contentUri: Uri = FileProvider.getUriForFile(this, "${packageName}.fileprovider", file)
+
+            val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                type = "text/csv"
+                putExtra(Intent.EXTRA_SUBJECT, "Expense Report")
+                putExtra(Intent.EXTRA_STREAM, contentUri)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            startActivity(Intent.createChooser(shareIntent, "Share Report"))
+        } catch (e: Exception) {
+            Toast.makeText(this, "Error exporting data", Toast.LENGTH_SHORT).show()
+        }
     }
 }
