@@ -3,9 +3,15 @@ package com.example.equili
 import android.app.DatePickerDialog
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
+import android.widget.EditText
+import android.widget.Spinner
 import android.widget.TextView
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.widget.addTextChangedListener
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.equili.ui.adapter.ExpenseAdapter
@@ -53,6 +59,8 @@ class HistoryActivity : AppCompatActivity() {
         // UI Initialization
         val tvStart = findViewById<TextView>(R.id.tvStartDate)
         val tvEnd = findViewById<TextView>(R.id.tvEndDate)
+        val etSearch = findViewById<EditText>(R.id.etSearch)
+        val spinnerSort = findViewById<Spinner>(R.id.spinnerSort)
         val recyclerView = findViewById<RecyclerView>(R.id.recyclerView)
 
         // Initialize ExpenseAdapter with click listeners for editing and deleting
@@ -85,8 +93,34 @@ class HistoryActivity : AppCompatActivity() {
         viewModel.setDateRange(startDate.timeInMillis, endDate.timeInMillis)
 
         // Observe and display expenses
-        viewModel.expensesInDateRange.observe(this) { expenses ->
+        viewModel.filteredExpenses.observe(this) { expenses ->
             adapter.setExpenses(expenses)
+        }
+
+        // Search logic: Filter by title
+        etSearch.addTextChangedListener { text ->
+            viewModel.setSearchQuery(text.toString())
+        }
+
+        // Sorting logic: Initialize Spinner and listener
+        val sortOptions = arrayOf("Newest", "Oldest", "Highest Amount", "Lowest Amount", "Category (A-Z)")
+        val sortAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, sortOptions)
+        sortAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        spinnerSort.adapter = sortAdapter
+
+        spinnerSort.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                val option = when (position) {
+                    0 -> ExpenseViewModel.SortOption.DATE_DESC
+                    1 -> ExpenseViewModel.SortOption.DATE_ASC
+                    2 -> ExpenseViewModel.SortOption.AMOUNT_DESC
+                    3 -> ExpenseViewModel.SortOption.AMOUNT_ASC
+                    4 -> ExpenseViewModel.SortOption.CATEGORY_ASC
+                    else -> ExpenseViewModel.SortOption.DATE_DESC
+                }
+                viewModel.setSortOption(option)
+            }
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
         }
 
         // Filter: Select start date

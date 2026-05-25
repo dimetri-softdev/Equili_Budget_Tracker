@@ -21,6 +21,12 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
     // Reactive triggers for data fetching
     private val currentUserEmail = MutableLiveData<String>()
     private val dateRange = MutableLiveData<Pair<Long, Long>>()
+    private val searchQuery = MutableLiveData<String>("")
+    private val sortOption = MutableLiveData<SortOption>(SortOption.DATE_DESC)
+
+    enum class SortOption {
+        DATE_DESC, DATE_ASC, AMOUNT_DESC, AMOUNT_ASC, CATEGORY_ASC
+    }
 
     /** Observes the current user profile based on the active session email. */
     val currentUser: LiveData<UserModel?> = currentUserEmail.switchMap { email ->
@@ -51,6 +57,30 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
         repository.getExpensesInRange(pair.first, pair.second.first, pair.second.second)
     }
 
+    /**
+     * Expenses filtered by search query and sorted by selected option.
+     */
+    val filteredExpenses = MediatorLiveData<List<ExpenseModel>>().apply {
+        val update = {
+            val list = expensesInDateRange.value ?: emptyList()
+            val query = searchQuery.value ?: ""
+            val option = sortOption.value ?: SortOption.DATE_DESC
+
+            val filtered = if (query.isEmpty()) list else list.filter { it.title.contains(query, ignoreCase = true) }
+            
+            value = when (option) {
+                SortOption.DATE_DESC -> filtered.sortedByDescending { it.date }
+                SortOption.DATE_ASC -> filtered.sortedBy { it.date }
+                SortOption.AMOUNT_DESC -> filtered.sortedByDescending { it.amount }
+                SortOption.AMOUNT_ASC -> filtered.sortedBy { it.amount }
+                SortOption.CATEGORY_ASC -> filtered.sortedBy { it.category }
+            }
+        }
+        addSource(expensesInDateRange) { update() }
+        addSource(searchQuery) { update() }
+        addSource(sortOption) { update() }
+    }
+
     /** Sum of all expense amounts in the current filtered range. */
     val totalAmountInDateRange: LiveData<Double?> = userAndRange.switchMap { pair ->
         repository.getExpensesInRange(pair.first, pair.second.first, pair.second.second).map { list ->
@@ -79,6 +109,14 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
     /** Updates the filter range for expenses. */
     fun setDateRange(start: Long, end: Long) {
         dateRange.value = start to end
+    }
+
+    fun setSearchQuery(query: String) {
+        searchQuery.value = query
+    }
+
+    fun setSortOption(option: SortOption) {
+        sortOption.value = option
     }
 
     /** Inserts a new expense and rewards the user with XP and streak updates. */
