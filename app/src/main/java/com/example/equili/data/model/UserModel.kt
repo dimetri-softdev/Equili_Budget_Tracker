@@ -1,31 +1,30 @@
 package com.example.equili.data.model
 
-import androidx.room.Entity
-import androidx.room.PrimaryKey
+import java.io.Serializable
 
 /**
  * UserModel represents a registered user in the system.
- * It stores credentials and gamification metrics like XP, Level, and Streak.
+ * Updated for Firebase Firestore compatibility.
  */
-@Entity(tableName = "user_table")
 data class UserModel(
+    /** Unique user ID from Firebase Auth. */
+    var uid: String = "",
 
-    /** User's unique email address, used for login and linking data. */
-    @PrimaryKey
-    val email: String,
+    /** User's email address. */
+    val email: String = "",
 
-    /** User's password for authentication. */
-    val password: String,
-
-    /** Accumulated Experience Points (XP) for gamification. */
+    /** Accumulated Experience Points (XP). */
     val xp: Int = 0,
 
     /** Current user level based on XP. */
     val level: Int = 1,
 
-    /** Number of consecutive days the user has engaged with the app. */
+    /** Number of consecutive days of engagement. */
     val streak: Int = 0,
 
-    /** The timestamp of the last significant interaction, used to calculate streaks. */
+    /** Timestamp of the last action for streak calculation. */
     val lastActionDate: Long = 0
-)
+) : Serializable {
+    // Firestore requires a no-argument constructor
+    constructor() : this("", "", 0, 1, 0, 0)
+}

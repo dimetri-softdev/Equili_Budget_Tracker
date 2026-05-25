@@ -2,7 +2,6 @@ package com.example.equili.ui.viewModel
 
 import android.app.Application
 import androidx.lifecycle.*
-import com.example.equili.data.database.ExpenseDatabase
 import com.example.equili.data.model.*
 import com.example.equili.repository.ExpenseRepository
 import kotlinx.coroutines.Dispatchers
@@ -11,15 +10,12 @@ import java.util.*
 
 /**
  * ExpenseViewModel manages UI-related data for the app.
- * It handles logic for data filtering, gamification (XP, levels, streaks),
- * and interacts with the Repository for database operations.
+ * Upgraded by Nelson with Search/Sort features and synced with Dimetri's Firebase foundation.
  */
 class ExpenseViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val repository: ExpenseRepository
+    private val repository = ExpenseRepository()
 
-    // Reactive triggers for data fetching
-    private val currentUserEmail = MutableLiveData<String>()
     private val dateRange = MutableLiveData<Pair<Long, Long>>()
     private val searchQuery = MutableLiveData<String>("")
     private val sortOption = MutableLiveData<SortOption>(SortOption.DATE_DESC)
@@ -28,46 +24,34 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
         DATE_DESC, DATE_ASC, AMOUNT_DESC, AMOUNT_ASC, CATEGORY_ASC
     }
 
-    /** Observes the current user profile based on the active session email. */
-    val currentUser: LiveData<UserModel?> = currentUserEmail.switchMap { email ->
-        repository.getUserByEmailLiveData(email)
-    }
+    /** Observes the current user profile from Firebase. */
+    val currentUser: LiveData<UserModel?> = repository.getCurrentUserLiveData()
+
+    /** List of all categories for the current user from cloud. */
+    val allCategories: LiveData<List<CategoryModel>> = repository.getAllCategories()
+
+    /** Current monthly spending goal from cloud. */
+    val monthlyGoal: LiveData<GoalModel?> = repository.getMonthlyGoal()
 
     /**
-     * MediatorLiveData that combines user email and date range.
-     * Whenever either changes, it triggers dependent LiveData (like expensesInDateRange).
+     * Core Data: Expenses filtered by date range from the cloud.
      */
-    private val userAndRange = MediatorLiveData<Pair<String, Pair<Long, Long>>>().apply {
-        addSource(currentUserEmail) { email -> value = email to (dateRange.value ?: (0L to 0L)) }
-        addSource(dateRange) { range -> value = (currentUserEmail.value ?: "") to range }
-    }
-
-    /** List of all categories for the current user. */
-    val allCategories: LiveData<List<CategoryModel>> = currentUserEmail.switchMap { email ->
-        repository.getAllCategories(email)
-    }
-
-    /** Current monthly spending goal for the user. */
-    val monthlyGoal: LiveData<GoalModel?> = currentUserEmail.switchMap { email ->
-        repository.getMonthlyGoal(email)
-    }
-
-    /** List of expenses filtered by the current user and selected date range. */
-    val expensesInDateRange: LiveData<List<ExpenseModel>> = userAndRange.switchMap { pair ->
-        repository.getExpensesInRange(pair.first, pair.second.first, pair.second.second)
+    private val rawExpenses: LiveData<List<ExpenseModel>> = dateRange.switchMap { range ->
+        repository.getExpensesInRange(range.first, range.second)
     }
 
     /**
-     * Expenses filtered by search query and sorted by selected option.
+     * UPGRADED: Nelson's Filtered & Sorted list.
+     * Reacts to Search Query, Sort Selection, AND Date Range changes.
      */
     val filteredExpenses = MediatorLiveData<List<ExpenseModel>>().apply {
         val update = {
-            val list = expensesInDateRange.value ?: emptyList()
+            val list = rawExpenses.value ?: emptyList()
             val query = searchQuery.value ?: ""
             val option = sortOption.value ?: SortOption.DATE_DESC
 
             val filtered = if (query.isEmpty()) list else list.filter { it.title.contains(query, ignoreCase = true) }
-            
+
             value = when (option) {
                 SortOption.DATE_DESC -> filtered.sortedByDescending { it.date }
                 SortOption.DATE_ASC -> filtered.sortedBy { it.date }
@@ -76,37 +60,23 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
                 SortOption.CATEGORY_ASC -> filtered.sortedBy { it.category }
             }
         }
-        addSource(expensesInDateRange) { update() }
+        addSource(rawExpenses) { update() }
         addSource(searchQuery) { update() }
         addSource(sortOption) { update() }
     }
 
     /** Sum of all expense amounts in the current filtered range. */
-    val totalAmountInDateRange: LiveData<Double?> = userAndRange.switchMap { pair ->
-        repository.getExpensesInRange(pair.first, pair.second.first, pair.second.second).map { list ->
-            list.sumOf { it.amount }
-        }
+    val totalAmountInDateRange: LiveData<Double?> = rawExpenses.map { list ->
+        list.sumOf { it.amount }
     }
 
     init {
-        // Initialize repository with database instance
-        val db = ExpenseDatabase.getDatabase(application)
-        repository = ExpenseRepository(db)
-
         // Set default date range to current month
         val start = Calendar.getInstance().apply { set(Calendar.DAY_OF_MONTH, 1); set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0) }
-        val end = Calendar.getInstance()
+        val end = Calendar.getInstance().apply { set(Calendar.HOUR_OF_DAY, 23); set(Calendar.MINUTE, 59) }
         dateRange.value = start.timeInMillis to end.timeInMillis
     }
 
-    /** Updates the active user session email. */
-    fun setCurrentUser(email: String) {
-        currentUserEmail.value = email
-    }
-
-    fun getCurrentUserEmail(): String? = currentUserEmail.value
-
-    /** Updates the filter range for expenses. */
     fun setDateRange(start: Long, end: Long) {
         dateRange.value = start to end
     }
@@ -119,10 +89,9 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
         sortOption.value = option
     }
 
-    /** Inserts a new expense and rewards the user with XP and streak updates. */
     fun insertExpense(expense: ExpenseModel) = viewModelScope.launch(Dispatchers.IO) {
         repository.insertExpense(expense)
-        addXp(15) // Reward for logging data
+        addXp(15)
         updateStreak()
     }
 
@@ -132,67 +101,43 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
 
     fun insertCategory(category: CategoryModel) = viewModelScope.launch(Dispatchers.IO) {
         repository.insertCategory(category)
-        addXp(25) // Reward for customization
+        addXp(25)
     }
 
     fun updateGoal(min: Double, max: Double) = viewModelScope.launch(Dispatchers.IO) {
-        val email = currentUserEmail.value ?: return@launch
-        repository.updateGoal(GoalModel(userEmail = email, minGoal = min, maxGoal = max))
-        addXp(20) // Reward for financial planning
+        repository.updateGoal(GoalModel(minGoal = min, maxGoal = max))
+        addXp(20)
     }
 
     fun getCategoryTotalsInRange(start: Long, end: Long): LiveData<List<CategoryTotal>> {
-        val email = currentUserEmail.value ?: return MutableLiveData(emptyList())
-        return repository.getCategoryTotalsInRange(email, start, end)
+        return repository.getCategoryTotalsInRange(start, end)
     }
 
-    suspend fun registerUser(user: UserModel): Long = repository.registerUser(user)
-    suspend fun getUserByEmail(email: String): UserModel? = repository.getUserByEmail(email)
+    suspend fun registerUser(user: UserModel) = repository.registerUser(user)
 
-    /**
-     * Internal logic for gamification XP.
-     * Handles level-ups when XP exceeds the requirement (100 XP per level).
-     */
     private fun addXp(amount: Int) = viewModelScope.launch(Dispatchers.IO) {
-        val email = currentUserEmail.value ?: return@launch
-        val user = repository.getUserByEmail(email) ?: return@launch
-
-        var newXp = user.xp + amount
-        var newLevel = user.level
-
-        val xpNeeded = newLevel * 100
-        if (newXp >= xpNeeded) {
-            newXp -= xpNeeded
+        val currentUserValue = repository.getCurrentUserLiveData().value ?: return@launch
+        var newXp = currentUserValue.xp + amount
+        var newLevel = currentUserValue.level
+        if (newXp >= newLevel * 100) {
+            newXp -= (newLevel * 100)
             newLevel++
         }
-
-        repository.updateUser(user.copy(xp = newXp, level = newLevel))
+        repository.updateUser(currentUserValue.copy(xp = newXp, level = newLevel))
     }
 
-    /**
-     * Logic for tracking daily usage streaks.
-     * If user logs an expense on a consecutive day, the streak increases.
-     */
     private fun updateStreak() = viewModelScope.launch(Dispatchers.IO) {
-        val email = currentUserEmail.value ?: return@launch
-        val user = repository.getUserByEmail(email) ?: return@launch
-
+        val user = repository.getCurrentUserLiveData().value ?: return@launch
         val today = Calendar.getInstance().apply {
             set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
         }.timeInMillis
-
         val lastDate = user.lastActionDate
         val yesterday = today - (24 * 60 * 60 * 1000)
-
         var newStreak = user.streak
         if (lastDate < today) {
-            if (lastDate >= yesterday) {
-                newStreak++ // Consecutive day
-            } else {
-                newStreak = 1 // Reset streak if a day was missed
-            }
+            newStreak = if (lastDate >= yesterday) newStreak + 1 else 1
             repository.updateUser(user.copy(streak = newStreak, lastActionDate = today))
-            addXp(50) // Bonus for maintaining/starting a streak
+            addXp(50)
         }
     }
 }
