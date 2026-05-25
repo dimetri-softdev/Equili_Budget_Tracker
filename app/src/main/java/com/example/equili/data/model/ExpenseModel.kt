@@ -33,4 +33,7 @@ data class ExpenseModel(
 
     /** Local or remote file path to the attached receipt image, if any. */
     var imagePath: String? = null
-) : Serializable
+) : Serializable {
+    // Required for Firebase Realtime Database
+    constructor() : this("", "", "", 0.0, "", 0, "", "", null)
+}

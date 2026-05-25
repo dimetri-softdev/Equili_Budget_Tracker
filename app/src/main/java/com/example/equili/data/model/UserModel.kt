@@ -24,4 +24,7 @@ data class UserModel(
 
     /** Timestamp of the last action for streak calculation. */
     var lastActionDate: Long = 0
-) : Serializable
+) : Serializable {
+    // Required for Firebase Realtime Database
+    constructor() : this("", "", 0, 1, 0, 0)
+}

@@ -15,4 +15,7 @@ data class CategoryModel(
 
     /** The display name of the category (e.g., "Food", "Transport"). */
     var name: String = ""
-) : Serializable
+) : Serializable {
+    // Required for Firebase
+    constructor() : this("", "", "")
+}

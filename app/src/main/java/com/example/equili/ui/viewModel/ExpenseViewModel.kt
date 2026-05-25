@@ -40,11 +40,6 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
         repository.getExpensesInRange(range.first, range.second)
     }
 
-    /** Sum of all expense amounts in the current filtered range. */
-    val totalAmountInDateRange: LiveData<Double?> = expensesInDateRange.map { list ->
-        list.sumOf { it.amount }
-    }
-
     /**
      * Expenses filtered by search query and sorted by selected option.
      */
@@ -69,6 +64,11 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
         addSource(sortOption) { update() }
     }
 
+    /** Sum of all expense amounts in the current filtered range. */
+    val totalAmountInDateRange: LiveData<Double?> = expensesInDateRange.map { list ->
+        list.sumOf { it.amount }
+    }
+
     init {
         // Set default date range to current month
         val start = Calendar.getInstance().apply { set(Calendar.DAY_OF_MONTH, 1); set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0) }
@@ -88,9 +88,8 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
         sortOption.value = option
     }
 
-    fun setCurrentUser(email: String) {
-        // Kept for backward compatibility, Firebase handles session internally
-    }
+    /** No longer needed as Firebase Auth manages the session, but kept for legacy compatibility. */
+    fun setCurrentUser(email: String) {}
 
     fun insertExpense(expense: ExpenseModel) = viewModelScope.launch(Dispatchers.IO) {
         repository.insertExpense(expense)
@@ -130,7 +129,6 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
             newLevel++
         }
 
-        // Manual copy since UserModel is a simple class now
         val updatedUser = UserModel(
             uid = userValue.uid,
             email = userValue.email,
