@@ -40,12 +40,12 @@ class LoginActivity : AppCompatActivity() {
             val email = etUser.text.toString().trim()
             val pass = etPass.text.toString()
 
-            // Step 1: Validate input fields are not empty
+            // Validate input fields are not empty
             if (email.isNotEmpty() && pass.isNotEmpty()) {
 
                 Log.d(TAG, "Attempting Firebase login for user: $email")
 
-                // --- Firebase Login Logic Start ---
+                // Firebase Login Logic Start
                 auth.signInWithEmailAndPassword(email, pass)
                     .addOnSuccessListener { result ->
                         // Successful login!
