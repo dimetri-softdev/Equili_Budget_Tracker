@@ -2,20 +2,28 @@ package com.example.equili
 
 import android.app.DatePickerDialog
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
-import android.widget.TextView
+import android.view.View
+import android.widget.*
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.FileProvider
+import androidx.core.widget.addTextChangedListener
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.equili.data.model.ExpenseModel
 import com.example.equili.ui.adapter.ExpenseAdapter
 import com.example.equili.ui.viewModel.ExpenseViewModel
+import com.google.firebase.auth.FirebaseAuth
+import java.io.File
+import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.*
 
 /**
  * HistoryActivity displays a list of past expenses within a chosen date range.
- * Users can view, edit, or delete individual expense items.
+ * Users can search, sort, and export records.
  */
 class HistoryActivity : AppCompatActivity() {
 
@@ -40,31 +48,32 @@ class HistoryActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Session check: ensure user email is available
-        val email = getSharedPreferences("EquiliPrefs", MODE_PRIVATE).getString("CURRENT_USER", null)
-        if (email == null) {
+        // Ensure user is truly logged into Firebase
+        val user = FirebaseAuth.getInstance().currentUser
+        if (user == null) {
+            startActivity(Intent(this, LoginActivity::class.java))
             finish()
             return
         }
-        viewModel.setCurrentUser(email)
 
         setContentView(R.layout.activity_history)
 
         // UI Initialization
         val tvStart = findViewById<TextView>(R.id.tvStartDate)
         val tvEnd = findViewById<TextView>(R.id.tvEndDate)
+        val etSearch = findViewById<EditText>(R.id.etSearch)
+        val spinnerSort = findViewById<Spinner>(R.id.spinnerSort)
+        val btnExport = findViewById<ImageButton>(R.id.btnExport)
         val recyclerView = findViewById<RecyclerView>(R.id.recyclerView)
 
-        // Initialize ExpenseAdapter with click listeners for editing and deleting
+        // Initialize ExpenseAdapter
         adapter = ExpenseAdapter(
             onItemClick = { expense ->
-                // Open ExpenseActivity in "Edit" mode
                 val intent = Intent(this, ExpenseActivity::class.java)
                 intent.putExtra("EXPENSE", expense)
                 startActivity(intent)
             },
             onDeleteClick = { expense ->
-                // Confirm deletion with a dialog
                 androidx.appcompat.app.AlertDialog.Builder(this)
                     .setTitle("Delete Expense")
                     .setMessage("Are you sure you want to delete this expense?")
@@ -84,9 +93,45 @@ class HistoryActivity : AppCompatActivity() {
         // Fetch initial data based on default range
         viewModel.setDateRange(startDate.timeInMillis, endDate.timeInMillis)
 
-        // Observe and display expenses
-        viewModel.expensesInDateRange.observe(this) { expenses ->
+        // Observe and display filtered expenses
+        viewModel.filteredExpenses.observe(this) { expenses ->
             adapter.setExpenses(expenses)
+        }
+
+        // Search logic: Filter by title
+        etSearch.addTextChangedListener { text ->
+            viewModel.setSearchQuery(text.toString())
+        }
+
+        // Sorting logic: Initialize Spinner and listener
+        val sortOptions = arrayOf("Newest", "Oldest", "Highest Amount", "Lowest Amount", "Category (A-Z)")
+        val sortAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, sortOptions)
+        sortAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        spinnerSort.adapter = sortAdapter
+
+        spinnerSort.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                val option = when (position) {
+                    0 -> ExpenseViewModel.SortOption.DATE_DESC
+                    1 -> ExpenseViewModel.SortOption.DATE_ASC
+                    2 -> ExpenseViewModel.SortOption.AMOUNT_DESC
+                    3 -> ExpenseViewModel.SortOption.AMOUNT_ASC
+                    4 -> ExpenseViewModel.SortOption.CATEGORY_ASC
+                    else -> ExpenseViewModel.SortOption.DATE_DESC
+                }
+                viewModel.setSortOption(option)
+            }
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
+        }
+
+        // Export Logic
+        btnExport.setOnClickListener {
+            val expenses = viewModel.filteredExpenses.value
+            if (!expenses.isNullOrEmpty()) {
+                exportExpensesToCsv(expenses)
+            } else {
+                Toast.makeText(this, "No data to export", Toast.LENGTH_SHORT).show()
+            }
         }
 
         // Filter: Select start date
@@ -130,18 +175,12 @@ class HistoryActivity : AppCompatActivity() {
         }
     }
 
-    /**
-     * Updates the text display for the selected date range.
-     */
     private fun updateDateLabels(tvStart: TextView, tvEnd: TextView) {
         val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
         tvStart.text = "From: ${sdf.format(startDate.time)}"
         tvEnd.text = "To: ${sdf.format(endDate.time)}"
     }
 
-    /**
-     * Helper to show a DatePickerDialog and return the selection.
-     */
     private fun showDatePicker(onDateSelected: (Calendar) -> Unit) {
         val c = Calendar.getInstance()
         DatePickerDialog(this, { _, y, m, d ->
@@ -149,5 +188,32 @@ class HistoryActivity : AppCompatActivity() {
             selected.set(y, m, d)
             onDateSelected(selected)
         }, c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH)).show()
+    }
+
+    private fun exportExpensesToCsv(expenses: List<ExpenseModel>) {
+        val csvHeader = "Title,Amount,Category,Date\n"
+        val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+        val csvData = StringBuilder(csvHeader)
+
+        for (expense in expenses) {
+            csvData.append("${expense.title},${expense.amount},${expense.category},${sdf.format(Date(expense.date))}\n")
+        }
+
+        try {
+            val filename = "Equili_Expenses_${System.currentTimeMillis()}.csv"
+            val file = File(cacheDir, filename)
+            FileOutputStream(file).use { it.write(csvData.toString().toByteArray()) }
+
+            val contentUri: Uri = FileProvider.getUriForFile(this, "${packageName}.fileprovider", file)
+
+            val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                type = "text/csv"
+                putExtra(Intent.EXTRA_STREAM, contentUri)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            startActivity(Intent.createChooser(shareIntent, "Share Report"))
+        } catch (e: Exception) {
+            Toast.makeText(this, "Error exporting data", Toast.LENGTH_SHORT).show()
+        }
     }
 }

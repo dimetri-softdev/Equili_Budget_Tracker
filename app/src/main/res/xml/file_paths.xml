@@ -6,4 +6,6 @@
 <paths>
     <!-- Configures access to the app's external files directory under 'Pictures' -->
     <external-files-path name="my_images" path="Pictures" />
+    <!-- Configures access to the app's cache directory for temporary sharing -->
+    <cache-path name="my_cache" path="." />
 </paths>
