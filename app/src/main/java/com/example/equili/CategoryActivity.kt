@@ -15,10 +15,12 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.equili.data.model.CategoryModel
 import com.example.equili.ui.viewModel.ExpenseViewModel
+import com.google.firebase.auth.FirebaseAuth
 
 /**
  * CategoryActivity allows users to manage their custom expense categories.
  * Users can view existing categories and add new ones.
+ * Synced with Dimetri's Firebase session management.
  */
 class CategoryActivity : AppCompatActivity() {
 
@@ -27,13 +29,13 @@ class CategoryActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Session check: Ensure the user's email is stored in SharedPreferences
-        val userEmail = getSharedPreferences("EquiliPrefs", MODE_PRIVATE).getString("CURRENT_USER", null)
-        if (userEmail == null) {
-            finish() // Redirect to login (implicit)
+        // Ensure user is truly logged into Firebase
+        val user = FirebaseAuth.getInstance().currentUser
+        if (user == null) {
+            startActivity(Intent(this, LoginActivity::class.java))
+            finish()
             return
         }
-        viewModel.setCurrentUser(userEmail)
 
         setContentView(R.layout.activity_category)
 
@@ -56,8 +58,8 @@ class CategoryActivity : AppCompatActivity() {
         btnAdd.setOnClickListener {
             val name = etName.text.toString().trim()
             if (name.isNotEmpty()) {
-                // Save the new category linked to the current user
-                viewModel.insertCategory(CategoryModel(userEmail = userEmail, name = name))
+                // Save the new category
+                viewModel.insertCategory(CategoryModel(name = name))
                 etName.setText("") // Clear input field
                 Toast.makeText(this, "Category Added", Toast.LENGTH_SHORT).show()
             } else {

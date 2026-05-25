@@ -17,8 +17,8 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
     private val repository = ExpenseRepository()
 
     private val dateRange = MutableLiveData<Pair<Long, Long>>()
-    private val searchQuery = MutableLiveData<String>("")
-    private val sortOption = MutableLiveData<SortOption>(SortOption.DATE_DESC)
+    private val searchQuery = MutableLiveData("")
+    private val sortOption = MutableLiveData(SortOption.DATE_DESC)
 
     enum class SortOption {
         DATE_DESC, DATE_ASC, AMOUNT_DESC, AMOUNT_ASC, CATEGORY_ASC
@@ -36,17 +36,21 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
     /**
      * Core Data: Expenses filtered by date range from the cloud.
      */
-    private val rawExpenses: LiveData<List<ExpenseModel>> = dateRange.switchMap { range ->
+    val expensesInDateRange: LiveData<List<ExpenseModel>> = dateRange.switchMap { range ->
         repository.getExpensesInRange(range.first, range.second)
     }
 
+    /** Sum of all expense amounts in the current filtered range. */
+    val totalAmountInDateRange: LiveData<Double?> = expensesInDateRange.map { list ->
+        list.sumOf { it.amount }
+    }
+
     /**
-     * UPGRADED: Nelson's Filtered & Sorted list.
-     * Reacts to Search Query, Sort Selection, AND Date Range changes.
+     * Expenses filtered by search query and sorted by selected option.
      */
     val filteredExpenses = MediatorLiveData<List<ExpenseModel>>().apply {
         val update = {
-            val list = rawExpenses.value ?: emptyList()
+            val list = expensesInDateRange.value ?: emptyList()
             val query = searchQuery.value ?: ""
             val option = sortOption.value ?: SortOption.DATE_DESC
 
@@ -60,14 +64,9 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
                 SortOption.CATEGORY_ASC -> filtered.sortedBy { it.category }
             }
         }
-        addSource(rawExpenses) { update() }
+        addSource(expensesInDateRange) { update() }
         addSource(searchQuery) { update() }
         addSource(sortOption) { update() }
-    }
-
-    /** Sum of all expense amounts in the current filtered range. */
-    val totalAmountInDateRange: LiveData<Double?> = rawExpenses.map { list ->
-        list.sumOf { it.amount }
     }
 
     init {
@@ -87,6 +86,10 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
 
     fun setSortOption(option: SortOption) {
         sortOption.value = option
+    }
+
+    fun setCurrentUser(email: String) {
+        // Kept for backward compatibility, Firebase handles session internally
     }
 
     fun insertExpense(expense: ExpenseModel) = viewModelScope.launch(Dispatchers.IO) {
@@ -115,28 +118,51 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
 
     suspend fun registerUser(user: UserModel) = repository.registerUser(user)
 
+    suspend fun getUserByEmail(email: String): UserModel? = repository.getUserByEmail(email)
+
     private fun addXp(amount: Int) = viewModelScope.launch(Dispatchers.IO) {
-        val currentUserValue = repository.getCurrentUserLiveData().value ?: return@launch
-        var newXp = currentUserValue.xp + amount
-        var newLevel = currentUserValue.level
-        if (newXp >= newLevel * 100) {
-            newXp -= (newLevel * 100)
+        val userValue = currentUser.value ?: return@launch
+        var newXp = userValue.xp + amount
+        var newLevel = userValue.level
+        val xpNeeded = newLevel * 100
+        if (newXp >= xpNeeded) {
+            newXp -= xpNeeded
             newLevel++
         }
-        repository.updateUser(currentUserValue.copy(xp = newXp, level = newLevel))
+
+        // Manual copy since UserModel is a simple class now
+        val updatedUser = UserModel(
+            uid = userValue.uid,
+            email = userValue.email,
+            xp = newXp,
+            level = newLevel,
+            streak = userValue.streak,
+            lastActionDate = userValue.lastActionDate
+        )
+        repository.updateUser(updatedUser)
     }
 
     private fun updateStreak() = viewModelScope.launch(Dispatchers.IO) {
-        val user = repository.getCurrentUserLiveData().value ?: return@launch
+        val userValue = currentUser.value ?: return@launch
         val today = Calendar.getInstance().apply {
             set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
         }.timeInMillis
-        val lastDate = user.lastActionDate
+        val lastDate = userValue.lastActionDate
         val yesterday = today - (24 * 60 * 60 * 1000)
-        var newStreak = user.streak
+        var newStreak = userValue.streak
+
         if (lastDate < today) {
             newStreak = if (lastDate >= yesterday) newStreak + 1 else 1
-            repository.updateUser(user.copy(streak = newStreak, lastActionDate = today))
+
+            val updatedUser = UserModel(
+                uid = userValue.uid,
+                email = userValue.email,
+                xp = userValue.xp,
+                level = userValue.level,
+                streak = newStreak,
+                lastActionDate = today
+            )
+            repository.updateUser(updatedUser)
             addXp(50)
         }
     }

@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.equili.data.model.ExpenseModel
 import com.example.equili.ui.adapter.ExpenseAdapter
 import com.example.equili.ui.viewModel.ExpenseViewModel
+import com.google.firebase.auth.FirebaseAuth
 import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
@@ -22,7 +23,7 @@ import java.util.*
 
 /**
  * HistoryActivity displays a list of past expenses within a chosen date range.
- * Users can view, edit, or delete individual expense items.
+ * Users can search, sort, and export records.
  */
 class HistoryActivity : AppCompatActivity() {
 
@@ -47,13 +48,13 @@ class HistoryActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Session check: ensure user email is available
-        val email = getSharedPreferences("EquiliPrefs", MODE_PRIVATE).getString("CURRENT_USER", null)
-        if (email == null) {
+        // Ensure user is truly logged into Firebase
+        val user = FirebaseAuth.getInstance().currentUser
+        if (user == null) {
+            startActivity(Intent(this, LoginActivity::class.java))
             finish()
             return
         }
-        viewModel.setCurrentUser(email)
 
         setContentView(R.layout.activity_history)
 
@@ -65,16 +66,14 @@ class HistoryActivity : AppCompatActivity() {
         val btnExport = findViewById<ImageButton>(R.id.btnExport)
         val recyclerView = findViewById<RecyclerView>(R.id.recyclerView)
 
-        // Initialize ExpenseAdapter with click listeners for editing and deleting
+        // Initialize ExpenseAdapter
         adapter = ExpenseAdapter(
             onItemClick = { expense ->
-                // Open ExpenseActivity in "Edit" mode
                 val intent = Intent(this, ExpenseActivity::class.java)
                 intent.putExtra("EXPENSE", expense)
                 startActivity(intent)
             },
             onDeleteClick = { expense ->
-                // Confirm deletion with a dialog
                 androidx.appcompat.app.AlertDialog.Builder(this)
                     .setTitle("Delete Expense")
                     .setMessage("Are you sure you want to delete this expense?")
@@ -94,7 +93,7 @@ class HistoryActivity : AppCompatActivity() {
         // Fetch initial data based on default range
         viewModel.setDateRange(startDate.timeInMillis, endDate.timeInMillis)
 
-        // Observe and display expenses
+        // Observe and display filtered expenses
         viewModel.filteredExpenses.observe(this) { expenses ->
             adapter.setExpenses(expenses)
         }
@@ -176,18 +175,12 @@ class HistoryActivity : AppCompatActivity() {
         }
     }
 
-    /**
-     * Updates the text display for the selected date range.
-     */
     private fun updateDateLabels(tvStart: TextView, tvEnd: TextView) {
         val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
         tvStart.text = "From: ${sdf.format(startDate.time)}"
         tvEnd.text = "To: ${sdf.format(endDate.time)}"
     }
 
-    /**
-     * Helper to show a DatePickerDialog and return the selection.
-     */
     private fun showDatePicker(onDateSelected: (Calendar) -> Unit) {
         val c = Calendar.getInstance()
         DatePickerDialog(this, { _, y, m, d ->
@@ -197,9 +190,6 @@ class HistoryActivity : AppCompatActivity() {
         }, c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH)).show()
     }
 
-    /**
-     * Generates a CSV file from the filtered list of expenses and triggers a share Intent.
-     */
     private fun exportExpensesToCsv(expenses: List<ExpenseModel>) {
         val csvHeader = "Title,Amount,Category,Date\n"
         val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
@@ -218,7 +208,6 @@ class HistoryActivity : AppCompatActivity() {
 
             val shareIntent = Intent(Intent.ACTION_SEND).apply {
                 type = "text/csv"
-                putExtra(Intent.EXTRA_SUBJECT, "Expense Report")
                 putExtra(Intent.EXTRA_STREAM, contentUri)
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
