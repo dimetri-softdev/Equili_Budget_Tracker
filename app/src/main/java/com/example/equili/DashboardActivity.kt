@@ -8,6 +8,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.example.equili.ui.viewModel.ExpenseViewModel
+import com.google.firebase.auth.FirebaseAuth
 import java.util.*
 
 /**
@@ -21,14 +22,16 @@ class DashboardActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Auth Check: Redirect to login if no user email is found in session
-        val email = getSharedPreferences("EquiliPrefs", MODE_PRIVATE).getString("CURRENT_USER", null)
-        if (email == null) {
+        // --- SECURITY CHECK START ---
+        // Ensure user is truly logged into Firebase before showing data
+        val user = FirebaseAuth.getInstance().currentUser
+        if (user == null) {
+            // No authenticated user, force redirect to Login
             startActivity(Intent(this, LoginActivity::class.java))
             finish()
             return
         }
-        viewModel.setCurrentUser(email)
+        // --- SECURITY CHECK END ---
 
         setContentView(R.layout.activity_dashboard)
 
@@ -46,6 +49,7 @@ class DashboardActivity : AppCompatActivity() {
         val goalBtn = findViewById<Button>(R.id.goalBtn)
         val logoutBtn = findViewById<ImageButton>(R.id.btnLogout)
         val themeBtn = findViewById<ImageButton>(R.id.btnTheme)
+        val profileBtn = findViewById<ImageButton>(R.id.btnProfile)
 
         // Theme Toggle Logic: Switches between Light and Dark mode
         val isNightMode = resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK == android.content.res.Configuration.UI_MODE_NIGHT_YES
@@ -58,6 +62,11 @@ class DashboardActivity : AppCompatActivity() {
             } else {
                 androidx.appcompat.app.AppCompatDelegate.setDefaultNightMode(androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES)
             }
+        }
+
+        // Navigate to User Profile
+        profileBtn.setOnClickListener {
+            startActivity(Intent(this, ProfileActivity::class.java))
         }
 
         // Set the default date range for dashboard stats (current calendar month)
@@ -83,14 +92,14 @@ class DashboardActivity : AppCompatActivity() {
         }
 
         // Observe user profile data (XP, Level, Streak) for gamification features
-        viewModel.currentUser.observe(this) { user ->
-            if (user != null) {
-                tvLevel.text = "Level ${user.level}"
-                tvStreak.text = user.streak.toString()
+        viewModel.currentUser.observe(this) { userProfile ->
+            if (userProfile != null) {
+                tvLevel.text = "Level ${userProfile.level}"
+                tvStreak.text = userProfile.streak.toString()
 
-                val xpNeeded = user.level * 100
+                val xpNeeded = userProfile.level * 100
                 xpProgress.max = xpNeeded
-                xpProgress.progress = user.xp
+                xpProgress.progress = userProfile.xp
             }
         }
 
@@ -115,6 +124,7 @@ class DashboardActivity : AppCompatActivity() {
 
         // Logout: Clear session and return to Landing Screen
         logoutBtn.setOnClickListener {
+            FirebaseAuth.getInstance().signOut() // Sign out from Firebase
             getSharedPreferences("EquiliPrefs", MODE_PRIVATE).edit().clear().apply()
             startActivity(Intent(this, MainActivity::class.java))
             finishAffinity()

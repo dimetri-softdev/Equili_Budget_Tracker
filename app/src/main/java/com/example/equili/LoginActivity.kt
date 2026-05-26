@@ -10,8 +10,6 @@ import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import com.example.equili.ui.viewModel.ExpenseViewModel
-// import com.google.firebase.auth.FirebaseAuth
-import kotlinx.coroutines.launch
 import com.google.firebase.auth.FirebaseAuth
 
 /**
@@ -21,7 +19,6 @@ import com.google.firebase.auth.FirebaseAuth
 class LoginActivity : AppCompatActivity() {
 
     private val TAG = "LoginActivity"
-    // private lateinit var auth: FirebaseAuth
     private val viewModel: ExpenseViewModel by viewModels()
 
     // Firebase Authentication instance
@@ -32,7 +29,6 @@ class LoginActivity : AppCompatActivity() {
         setContentView(R.layout.activity_login)
 
         // Initialize Firebase Auth
-        // auth = FirebaseAuth.getInstance()
         auth = FirebaseAuth.getInstance()
 
         // UI component initialization
@@ -48,10 +44,6 @@ class LoginActivity : AppCompatActivity() {
 
             // Step 1: Validate input fields are not empty
             if (email.isNotEmpty() && pass.isNotEmpty()) {
-
-                    // Simple password verification
-                    if (user != null && user.password == pass) {
-                        Log.d(TAG, "Login successful for user: $email")
                 Log.d(TAG, "Attempting Firebase login for user: $email")
 
                 // --- Firebase Login Logic Start ---
@@ -71,10 +63,6 @@ class LoginActivity : AppCompatActivity() {
                         val intent = Intent(this@LoginActivity, DashboardActivity::class.java)
                         startActivity(intent)
                         finish() // Prevent user from returning to login screen via 'Back'
-                    } else {
-                        Log.w(TAG, "Login failed for user: $email")
-                        // Feedback for failed authentication
-                        finish() // Prevent returning to login via back button
                     }
                     .addOnFailureListener { e ->
                         // Authentication failed (wrong password, user doesn't exist, etc.)
@@ -93,8 +81,7 @@ class LoginActivity : AppCompatActivity() {
             val email = etUser.text.toString().trim()
 
             if (email.isNotEmpty()) {
-                // Feature 1: Forgot Password Flow using Firebase Auth (Disabled for now)
-                /*
+                // Feature 1: Forgot Password Flow using Firebase Auth
                 auth.sendPasswordResetEmail(email)
                     .addOnCompleteListener { task ->
                         if (task.isSuccessful) {
@@ -105,8 +92,6 @@ class LoginActivity : AppCompatActivity() {
                             Toast.makeText(this, "Error: ${task.exception?.message}", Toast.LENGTH_LONG).show()
                         }
                     }
-                */
-                Toast.makeText(this, "Forgot password feature is currently disabled", Toast.LENGTH_SHORT).show()
             } else {
                 Toast.makeText(this, "Please enter your email in the Username field first", Toast.LENGTH_SHORT).show()
             }
