@@ -15,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
 import com.example.equili.data.model.ExpenseModel
 import com.example.equili.ui.viewModel.ExpenseViewModel
+import com.google.firebase.auth.FirebaseAuth
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
@@ -45,13 +46,13 @@ class ExpenseActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Retrieve current user email from SharedPreferences
-        val userEmail = getSharedPreferences("EquiliPrefs", MODE_PRIVATE).getString("CURRENT_USER", null)
-        if (userEmail == null) {
-            finish() // Close activity if no user is logged in
+        // Ensure user is truly logged into Firebase before showing data
+        val user = FirebaseAuth.getInstance().currentUser
+        if (user == null) {
+            startActivity(Intent(this, LoginActivity::class.java))
+            finish()
             return
         }
-        viewModel.setCurrentUser(userEmail)
 
         setContentView(R.layout.activity_expense)
 

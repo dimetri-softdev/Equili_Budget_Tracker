@@ -4,7 +4,7 @@ import java.io.Serializable
 
 /**
  * CategoryModel represents a spending category.
- * Updated for Firebase Firestore compatibility.
+ * Updated for Firebase Realtime Database compatibility.
  */
 data class CategoryModel(
     /** Unique ID for the category. */
@@ -14,8 +14,8 @@ data class CategoryModel(
     var userId: String = "",
 
     /** The display name of the category (e.g., "Food", "Transport"). */
-    val name: String = ""
+    var name: String = ""
 ) : Serializable {
-    // Firestore requires a no-argument constructor
+    // Required for Firebase
     constructor() : this("", "", "")
 }

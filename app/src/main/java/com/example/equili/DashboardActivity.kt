@@ -76,8 +76,8 @@ class DashboardActivity : AppCompatActivity() {
         viewModel.setDateRange(start.timeInMillis, end.timeInMillis)
 
         // Observe and update total monthly spending
-        viewModel.totalAmountInDateRange.observe(this) { total ->
-            val spent = total ?: 0.0
+        viewModel.expensesInDateRange.observe(this) { expenses ->
+            val spent = expenses?.sumOf { it.amount } ?: 0.0
             budgetAmount.text = String.format(Locale.getDefault(), "R%.2f Spent this month", spent)
             updateProgressBar(spent)
         }
@@ -98,7 +98,8 @@ class DashboardActivity : AppCompatActivity() {
         viewModel.monthlyGoal.observe(this) { goal ->
             if (goal != null) {
                 tvGoals.text = String.format(Locale.getDefault(), "Goal: Min R%.0f - Max R%.0f", goal.minGoal, goal.maxGoal)
-                viewModel.totalAmountInDateRange.value?.let { updateProgressBar(it) }
+                val spent = viewModel.expensesInDateRange.value?.sumOf { it.amount } ?: 0.0
+                updateProgressBar(spent)
             } else {
                 tvGoals.text = "Goal: Not set"
             }
