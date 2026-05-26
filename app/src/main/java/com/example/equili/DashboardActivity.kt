@@ -31,8 +31,6 @@ class DashboardActivity : AppCompatActivity() {
             finish()
             return
         }
-        // Sync the session for legacy parts of the app
-        viewModel.setCurrentUser(user.email ?: "")
         // --- SECURITY CHECK END ---
 
         setContentView(R.layout.activity_dashboard)
@@ -51,6 +49,7 @@ class DashboardActivity : AppCompatActivity() {
         val goalBtn = findViewById<Button>(R.id.goalBtn)
         val logoutBtn = findViewById<ImageButton>(R.id.btnLogout)
         val themeBtn = findViewById<ImageButton>(R.id.btnTheme)
+        val profileBtn = findViewById<ImageButton>(R.id.btnProfile)
 
         // Theme Toggle Logic: Switches between Light and Dark mode
         val isNightMode = resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK == android.content.res.Configuration.UI_MODE_NIGHT_YES
@@ -63,6 +62,11 @@ class DashboardActivity : AppCompatActivity() {
             } else {
                 androidx.appcompat.app.AppCompatDelegate.setDefaultNightMode(androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES)
             }
+        }
+
+        // Navigate to User Profile
+        profileBtn.setOnClickListener {
+            startActivity(Intent(this, ProfileActivity::class.java))
         }
 
         // Set the default date range for dashboard stats (current calendar month)
@@ -88,14 +92,14 @@ class DashboardActivity : AppCompatActivity() {
         }
 
         // Observe user profile data (XP, Level, Streak) for gamification features
-        viewModel.currentUser.observe(this) { user ->
-            if (user != null) {
-                tvLevel.text = "Level ${user.level}"
-                tvStreak.text = user.streak.toString()
+        viewModel.currentUser.observe(this) { userProfile ->
+            if (userProfile != null) {
+                tvLevel.text = "Level ${userProfile.level}"
+                tvStreak.text = userProfile.streak.toString()
 
-                val xpNeeded = user.level * 100
+                val xpNeeded = userProfile.level * 100
                 xpProgress.max = xpNeeded
-                xpProgress.progress = user.xp
+                xpProgress.progress = userProfile.xp
             }
         }
 

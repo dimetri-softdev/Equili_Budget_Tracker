@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.Button
 import android.widget.EditText
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -34,6 +35,7 @@ class LoginActivity : AppCompatActivity() {
         val etUser = findViewById<EditText>(R.id.etUsername)
         val etPass = findViewById<EditText>(R.id.etPassword)
         val btnLogin = findViewById<Button>(R.id.btnLogin)
+        val tvForgotPassword = findViewById<TextView>(R.id.tvForgotPassword)
 
         // Login button click logic
         btnLogin.setOnClickListener {
@@ -42,7 +44,6 @@ class LoginActivity : AppCompatActivity() {
 
             // Validate input fields are not empty
             if (email.isNotEmpty() && pass.isNotEmpty()) {
-
                 Log.d(TAG, "Attempting Firebase login for user: $email")
 
                 // Firebase Login Logic Start
@@ -61,7 +62,7 @@ class LoginActivity : AppCompatActivity() {
                         // Navigate to the dashboard
                         val intent = Intent(this@LoginActivity, DashboardActivity::class.java)
                         startActivity(intent)
-                        finish() // Prevent returning to login via back button
+                        finish() // Prevent user from returning to login screen via 'Back'
                     }
                     .addOnFailureListener { e ->
                         // Authentication failed (wrong password, user doesn't exist, etc.)
@@ -72,6 +73,27 @@ class LoginActivity : AppCompatActivity() {
 
             } else {
                 Toast.makeText(this, "Please enter login details", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        // Forgot Password logic
+        tvForgotPassword.setOnClickListener {
+            val email = etUser.text.toString().trim()
+
+            if (email.isNotEmpty()) {
+                // Feature 1: Forgot Password Flow using Firebase Auth
+                auth.sendPasswordResetEmail(email)
+                    .addOnCompleteListener { task ->
+                        if (task.isSuccessful) {
+                            Log.d(TAG, "Password reset email sent to $email")
+                            Toast.makeText(this, "Reset link sent to your email", Toast.LENGTH_SHORT).show()
+                        } else {
+                            Log.e(TAG, "Error sending reset email", task.exception)
+                            Toast.makeText(this, "Error: ${task.exception?.message}", Toast.LENGTH_LONG).show()
+                        }
+                    }
+            } else {
+                Toast.makeText(this, "Please enter your email in the Username field first", Toast.LENGTH_SHORT).show()
             }
         }
     }
