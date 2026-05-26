@@ -20,12 +20,13 @@ import com.github.mikephil.charting.data.PieDataSet
 import com.github.mikephil.charting.data.PieEntry
 import com.github.mikephil.charting.formatter.PercentFormatter
 import com.github.mikephil.charting.utils.ColorTemplate
+import com.google.firebase.auth.FirebaseAuth
 import java.text.SimpleDateFormat
 import java.util.*
 
 /**
  * AnalyticsActivity displays spending analysis using a PieChart and a list of category totals.
- * Users can filter data by selecting a date range.
+ * Now synced with Dimetri's Firebase session management.
  */
 class AnalyticsActivity : AppCompatActivity() {
 
@@ -52,13 +53,13 @@ class AnalyticsActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Ensure user is logged in
-        val email = getSharedPreferences("EquiliPrefs", MODE_PRIVATE).getString("CURRENT_USER", null)
-        if (email == null) {
+        // Ensure user is truly logged into Firebase
+        val user = FirebaseAuth.getInstance().currentUser
+        if (user == null) {
+            startActivity(Intent(this, LoginActivity::class.java))
             finish()
             return
         }
-        viewModel.setCurrentUser(email)
 
         setContentView(R.layout.activity_analytics)
 
@@ -118,9 +119,6 @@ class AnalyticsActivity : AppCompatActivity() {
         }
     }
 
-    /**
-     * Configures visual appearance of the PieChart.
-     */
     private fun setupPieChart() {
         pieChart.setUsePercentValues(true)
         pieChart.description.isEnabled = false
@@ -144,9 +142,6 @@ class AnalyticsActivity : AppCompatActivity() {
         pieChart.setEntryLabelTextSize(12f)
     }
 
-    /**
-     * Updates the PieChart data based on the provided category totals.
-     */
     private fun updatePieChart(dataList: List<CategoryTotal>) {
         val entries = ArrayList<PieEntry>()
         dataList.forEach {
@@ -193,9 +188,6 @@ class AnalyticsActivity : AppCompatActivity() {
         pieChart.invalidate() // Refresh chart
     }
 
-    /**
-     * Observes the LiveData from ViewModel for category totals in the selected range.
-     */
     private fun observeAnalytics() {
         viewModel.getCategoryTotalsInRange(startDate.timeInMillis, endDate.timeInMillis).observe(this) {
             val list = it ?: emptyList()
@@ -204,18 +196,12 @@ class AnalyticsActivity : AppCompatActivity() {
         }
     }
 
-    /**
-     * Formats and updates the date range display labels.
-     */
     private fun updateLabels(tvS: TextView, tvE: TextView) {
         val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
         tvS.text = sdf.format(startDate.time)
         tvE.text = sdf.format(endDate.time)
     }
 
-    /**
-     * Displays a DatePickerDialog and returns the selected date via callback.
-     */
     private fun showDatePicker(onDate: (Calendar) -> Unit) {
         val c = Calendar.getInstance()
         DatePickerDialog(this, { _, y, m, d ->
@@ -225,9 +211,6 @@ class AnalyticsActivity : AppCompatActivity() {
         }, c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH)).show()
     }
 
-    /**
-     * Adapter for the RecyclerView displaying textual category totals.
-     */
     inner class AnalyticsAdapter : RecyclerView.Adapter<AnalyticsAdapter.VH>() {
         private var items = listOf<CategoryTotal>()
 

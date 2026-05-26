@@ -9,14 +9,14 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.lifecycleScope
 import com.example.equili.ui.viewModel.ExpenseViewModel
 // import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
+import com.google.firebase.auth.FirebaseAuth
 
 /**
  * LoginActivity handles user authentication.
- * It verifies credentials against the local Room database and starts a session.
+ * Verified against Firebase Authentication to allow access to the cloud-synced dashboard.
  */
 class LoginActivity : AppCompatActivity() {
 
@@ -24,12 +24,16 @@ class LoginActivity : AppCompatActivity() {
     // private lateinit var auth: FirebaseAuth
     private val viewModel: ExpenseViewModel by viewModels()
 
+    // Firebase Authentication instance
+    private lateinit var auth: FirebaseAuth
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
 
         // Initialize Firebase Auth
         // auth = FirebaseAuth.getInstance()
+        auth = FirebaseAuth.getInstance()
 
         // UI component initialization
         val etUser = findViewById<EditText>(R.id.etUsername)
@@ -42,30 +46,43 @@ class LoginActivity : AppCompatActivity() {
             val email = etUser.text.toString().trim()
             val pass = etPass.text.toString()
 
-            // Validate that input fields are not empty
+            // Step 1: Validate input fields are not empty
             if (email.isNotEmpty() && pass.isNotEmpty()) {
-                // Launch coroutine to perform database lookup off the main thread
-                lifecycleScope.launch {
-                    val user = viewModel.getUserByEmail(email)
 
                     // Simple password verification
                     if (user != null && user.password == pass) {
                         Log.d(TAG, "Login successful for user: $email")
+                Log.d(TAG, "Attempting Firebase login for user: $email")
+
+                // --- Firebase Login Logic Start ---
+                auth.signInWithEmailAndPassword(email, pass)
+                    .addOnSuccessListener { result ->
+                        // Successful login!
+                        val user = result.user
+                        Log.i(TAG, "Successfully authenticated user: ${user?.email} (UID: ${user?.uid})")
+
                         // Persist session locally using SharedPreferences
+                        // This allows other parts of the app to know who is logged in
                         getSharedPreferences("EquiliPrefs", MODE_PRIVATE).edit()
                             .putString("CURRENT_USER", email)
                             .apply()
 
-                        // Navigate to the dashboard on successful login
+                        // Navigate to the dashboard
                         val intent = Intent(this@LoginActivity, DashboardActivity::class.java)
                         startActivity(intent)
                         finish() // Prevent user from returning to login screen via 'Back'
                     } else {
                         Log.w(TAG, "Login failed for user: $email")
                         // Feedback for failed authentication
+                        finish() // Prevent returning to login via back button
+                    }
+                    .addOnFailureListener { e ->
+                        // Authentication failed (wrong password, user doesn't exist, etc.)
+                        Log.w(TAG, "Login failed for $email: ${e.message}")
                         Toast.makeText(this@LoginActivity, "Invalid email or password", Toast.LENGTH_SHORT).show()
                     }
-                }
+                // --- Firebase Login Logic End ---
+
             } else {
                 Toast.makeText(this, "Please enter login details", Toast.LENGTH_SHORT).show()
             }

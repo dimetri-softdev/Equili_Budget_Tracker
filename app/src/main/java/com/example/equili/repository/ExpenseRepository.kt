@@ -1,48 +1,221 @@
 package com.example.equili.repository
 
 import androidx.lifecycle.LiveData
-import com.example.equili.data.dao.*
+import androidx.lifecycle.MutableLiveData
 import com.example.equili.data.model.*
-import com.example.equili.data.database.ExpenseDatabase
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
+import kotlinx.coroutines.tasks.await
 
 /**
- * ExpenseRepository acts as a mediator between the ViewModel and the underlying Room database.
- * It provides a clean API for the rest of the app to access and modify data.
+ * ExpenseRepository now uses Firebase Realtime Database for cloud data storage.
+ * It manages expenses, categories, goals, and user profiles securely using the user's UID.
  */
-class ExpenseRepository(private val db: ExpenseDatabase) {
+class ExpenseRepository {
 
-    // Access to specific DAOs
-    private val expenseDao = db.expenseDao()
-    private val categoryDao = db.categoryDao()
-    private val goalDao = db.goalDao()
-    private val userDao = db.userDao()
+    private val db = FirebaseDatabase.getInstance().reference
+    private val auth = FirebaseAuth.getInstance()
+
+    /** Returns the current logged-in user's UID or an empty string. */
+    private fun getUid(): String = auth.currentUser?.uid ?: ""
 
     // --- Expense Operations ---
 
-    fun getAllExpenses(userEmail: String): LiveData<List<ExpenseModel>> = expenseDao.getAllExpenses(userEmail)
-    fun getTotalAmount(userEmail: String): LiveData<Double?> = expenseDao.getTotalAmount(userEmail)
-    fun getExpensesInRange(userEmail: String, start: Long, end: Long) = expenseDao.getExpensesInRange(userEmail, start, end)
-    fun getCategoryTotalsInRange(userEmail: String, start: Long, end: Long) = expenseDao.getCategoryTotalsInRange(userEmail, start, end)
-    fun getCategoryTotalInRange(userEmail: String, name: String, start: Long, end: Long) =
-        expenseDao.getCategoryTotalInRange(userEmail, name, start, end)
+    /**
+     * Saves or updates an expense in the cloud.
+     * Path: users/{uid}/expenses/{expenseId}
+     */
+    suspend fun insertExpense(expense: ExpenseModel) {
+        val uid = getUid()
+        if (uid.isEmpty()) return
 
-    suspend fun insertExpense(expense: ExpenseModel) = expenseDao.insert(expense)
-    suspend fun deleteExpense(expense: ExpenseModel) = expenseDao.delete(expense)
+        expense.userId = uid
+        val userExpensesRef = db.child("users").child(uid).child("expenses")
+
+        if (expense.id.isEmpty()) {
+            val newRef = userExpensesRef.push()
+            expense.id = newRef.key ?: ""
+            newRef.setValue(expense).await()
+        } else {
+            userExpensesRef.child(expense.id).setValue(expense).await()
+        }
+    }
+
+    suspend fun deleteExpense(expense: ExpenseModel) {
+        val uid = getUid()
+        if (uid.isEmpty() || expense.id.isEmpty()) return
+        db.child("users").child(uid).child("expenses").child(expense.id).removeValue().await()
+    }
+
+    /** Retrieves all user expenses as LiveData (Real-time). */
+    fun getAllExpenses(): LiveData<List<ExpenseModel>> {
+        val liveData = MutableLiveData<List<ExpenseModel>>()
+        val uid = getUid()
+        if (uid.isEmpty()) {
+            liveData.value = emptyList()
+            return liveData
+        }
+
+        db.child("users").child(uid).child("expenses")
+            .addValueEventListener(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    val items = mutableListOf<ExpenseModel>()
+                    snapshot.children.forEach { child ->
+                        child.getValue(ExpenseModel::class.java)?.let { items.add(it) }
+                    }
+                    liveData.value = items.sortedByDescending { it.date }
+                }
+                override fun onCancelled(error: DatabaseError) {}
+            })
+        return liveData
+    }
+
+    /** Retrieves expenses filtered by date range. */
+    fun getExpensesInRange(start: Long, end: Long): LiveData<List<ExpenseModel>> {
+        val liveData = MutableLiveData<List<ExpenseModel>>()
+        val uid = getUid()
+        if (uid.isEmpty()) return liveData
+
+        db.child("users").child(uid).child("expenses")
+            .orderByChild("date")
+            .startAt(start.toDouble())
+            .endAt(end.toDouble())
+            .addValueEventListener(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    val items = mutableListOf<ExpenseModel>()
+                    snapshot.children.forEach { child ->
+                        child.getValue(ExpenseModel::class.java)?.let { items.add(it) }
+                    }
+                    liveData.value = items.sortedByDescending { it.date }
+                }
+                override fun onCancelled(error: DatabaseError) {}
+            })
+        return liveData
+    }
+
+    /** Aggregates category totals from Realtime DB. */
+    fun getCategoryTotalsInRange(start: Long, end: Long): LiveData<List<CategoryTotal>> {
+        val result = MutableLiveData<List<CategoryTotal>>()
+        val uid = getUid()
+        if (uid.isEmpty()) return result
+
+        db.child("users").child(uid).child("expenses")
+            .orderByChild("date")
+            .startAt(start.toDouble())
+            .endAt(end.toDouble())
+            .addValueEventListener(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    val list = mutableListOf<ExpenseModel>()
+                    snapshot.children.forEach { child ->
+                        child.getValue(ExpenseModel::class.java)?.let { list.add(it) }
+                    }
+                    val totals = list.groupBy { it.category }
+                        .map { (name, items) -> CategoryTotal(name, items.sumOf { it.amount }) }
+                    result.value = totals
+                }
+                override fun onCancelled(error: DatabaseError) {}
+            })
+        return result
+    }
 
     // --- Category Operations ---
 
-    fun getAllCategories(userEmail: String): LiveData<List<CategoryModel>> = categoryDao.getAllCategories(userEmail)
-    suspend fun insertCategory(category: CategoryModel) = categoryDao.insert(category)
+    fun getAllCategories(): LiveData<List<CategoryModel>> {
+        val liveData = MutableLiveData<List<CategoryModel>>()
+        val uid = getUid()
+        if (uid.isEmpty()) return liveData
+
+        db.child("users").child(uid).child("categories")
+            .addValueEventListener(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    val items = mutableListOf<CategoryModel>()
+                    snapshot.children.forEach { child ->
+                        child.getValue(CategoryModel::class.java)?.let { items.add(it) }
+                    }
+                    liveData.value = items.sortedBy { it.name }
+                }
+                override fun onCancelled(error: DatabaseError) {}
+            })
+        return liveData
+    }
+
+    suspend fun insertCategory(category: CategoryModel) {
+        val uid = getUid()
+        if (uid.isEmpty()) return
+        category.userId = uid
+        val userCategoriesRef = db.child("users").child(uid).child("categories")
+
+        if (category.id.isEmpty()) {
+            val newRef = userCategoriesRef.push()
+            category.id = newRef.key ?: ""
+            newRef.setValue(category).await()
+        } else {
+            userCategoriesRef.child(category.id).setValue(category).await()
+        }
+    }
 
     // --- Goal Operations ---
 
-    fun getMonthlyGoal(userEmail: String): LiveData<GoalModel?> = goalDao.getGoal(userEmail)
-    suspend fun updateGoal(goal: GoalModel) = goalDao.updateGoal(goal)
+    fun getMonthlyGoal(): LiveData<GoalModel?> {
+        val liveData = MutableLiveData<GoalModel?>()
+        val uid = getUid()
+        if (uid.isEmpty()) return liveData
 
-    // --- User Profile & Auth Operations ---
+        db.child("users").child(uid).child("goals")
+            .addValueEventListener(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    liveData.value = snapshot.getValue(GoalModel::class.java)
+                }
+                override fun onCancelled(error: DatabaseError) {}
+            })
+        return liveData
+    }
 
-    suspend fun registerUser(user: UserModel) = userDao.registerUser(user)
-    suspend fun getUserByEmail(email: String) = userDao.getUserByEmail(email)
-    fun getUserByEmailLiveData(email: String) = userDao.getUserByEmailLiveData(email)
-    suspend fun updateUser(user: UserModel) = userDao.updateUser(user)
+    suspend fun updateGoal(goal: GoalModel) {
+        val uid = getUid()
+        if (uid.isEmpty()) return
+        goal.userId = uid
+        db.child("users").child(uid).child("goals").setValue(goal).await()
+    }
+
+    // --- User Profile Operations ---
+
+    suspend fun registerUser(user: UserModel) {
+        if (user.uid.isNotEmpty()) {
+            db.child("users").child(user.uid).child("profile").setValue(user).await()
+        }
+    }
+
+    suspend fun getUserByEmail(email: String): UserModel? {
+        val snapshot = db.child("users").get().await()
+        for (userSnapshot in snapshot.children) {
+            val profile = userSnapshot.child("profile").getValue(UserModel::class.java)
+            if (profile?.email == email) return profile
+        }
+        return null
+    }
+
+    fun getCurrentUserLiveData(): LiveData<UserModel?> {
+        val liveData = MutableLiveData<UserModel?>()
+        val uid = getUid()
+        if (uid.isEmpty()) return liveData
+
+        db.child("users").child(uid).child("profile")
+            .addValueEventListener(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    liveData.value = snapshot.getValue(UserModel::class.java)
+                }
+                override fun onCancelled(error: DatabaseError) {}
+            })
+        return liveData
+    }
+
+    suspend fun updateUser(user: UserModel) {
+        val uid = getUid()
+        if (uid.isEmpty()) return
+        db.child("users").child(uid).child("profile").setValue(user).await()
+    }
 }

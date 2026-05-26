@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.ksp)
     // alias(libs.plugins.google.services)
+    alias(libs.plugins.google.services)
 }
 
 android {
@@ -62,9 +63,17 @@ dependencies {
     // add bellow dependencies
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.4")
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.9.4")
-    implementation ("androidx.room:room-runtime:2.8.3")
-    ksp ("androidx.room:room-compiler:2.8.3")
-    implementation ("androidx.room:room-ktx:2.8.3")
     implementation ("androidx.recyclerview:recyclerview:1.4.0")
     implementation ("com.google.android.material:material:1.13.0")
+
+    // Firebase BoM
+    implementation(platform("com.google.firebase:firebase-bom:33.1.0"))
+
+// Firebase SDKs
+    implementation("com.google.firebase:firebase-auth-ktx")
+    implementation("com.google.firebase:firebase-database-ktx")
+    implementation("com.google.firebase:firebase-storage-ktx") // For receipt images
+
+// To use .await() with Firebase (makes it work like Room's suspend functions)
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
 }
