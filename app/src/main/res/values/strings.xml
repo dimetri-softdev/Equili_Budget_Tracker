@@ -1,4 +1,12 @@
 <resources>
     <!-- The user-facing name of the application -->
     <string name="app_name">Equili</string>
+    <string name="user_profile">User Profile</string>
+    <string name="email_address">Email Address</string>
+    <string name="guest_email">guest@example.com</string>
+    <string name="account_created_on">Account Created On</string>
+    <string name="default_date">January 01, 2024</string>
+    <string name="back_to_dashboard">Back to Dashboard</string>
+    <string name="guest_user">Guest User</string>
+    <string name="not_available">N/A</string>
 </resources>
