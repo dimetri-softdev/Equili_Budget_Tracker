@@ -77,6 +77,17 @@
             android:backgroundTint="?attr/colorPrimary"
             android:textColor="@color/black"/>
 
+        <TextView
+            android:id="@+id/tvForgotPassword"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Forgot Password?"
+            android:textColor="?attr/colorPrimary"
+            android:textSize="14sp"
+            android:clickable="true"
+            android:focusable="true" />
+
     </LinearLayout>
 
 </FrameLayout>
