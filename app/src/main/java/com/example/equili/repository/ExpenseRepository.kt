@@ -132,14 +132,36 @@ class ExpenseRepository {
             .addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     val items = mutableListOf<CategoryModel>()
-                    snapshot.children.forEach { child ->
-                        child.getValue(CategoryModel::class.java)?.let { items.add(it) }
+                    if (snapshot.exists()) {
+                        snapshot.children.forEach { child ->
+                            child.getValue(CategoryModel::class.java)?.let { items.add(it) }
+                        }
+                    } else {
+                        // Populate default categories if none exist in the cloud
+                        populateDefaultCategories(uid)
                     }
                     liveData.value = items.sortedBy { it.name }
                 }
                 override fun onCancelled(error: DatabaseError) {}
             })
         return liveData
+    }
+
+    /** Helper to populate initial categories for a new user. */
+    private fun populateDefaultCategories(uid: String) {
+        val defaults = mapOf(
+            "Food" to "ic_food",
+            "Transport" to "ic_transport",
+            "Shopping" to "ic_categories",
+            "Entertainment" to "ic_categories",
+            "Health" to "ic_categories",
+            "Utilities" to "ic_categories"
+        )
+        val ref = db.child("users").child(uid).child("categories")
+        defaults.forEach { (name, icon) ->
+            val newRef = ref.push()
+            newRef.setValue(CategoryModel(id = newRef.key ?: "", userId = uid, name = name, icon = icon))
+        }
     }
 
     suspend fun insertCategory(category: CategoryModel) {

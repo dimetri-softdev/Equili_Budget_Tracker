@@ -4,7 +4,7 @@ import java.io.Serializable
 
 /**
  * CategoryModel represents a spending category.
- * Updated for Firebase Realtime Database compatibility.
+ * Updated for Firebase Realtime Database compatibility with icons.
  */
 data class CategoryModel(
     /** Unique ID for the category. */
@@ -14,8 +14,11 @@ data class CategoryModel(
     var userId: String = "",
 
     /** The display name of the category (e.g., "Food", "Transport"). */
-    var name: String = ""
+    var name: String = "",
+
+    /** The icon resource name or identifier. */
+    var icon: String = "ic_categories"
 ) : Serializable {
     // Required for Firebase
-    constructor() : this("", "", "")
+    constructor() : this("", "", "", "ic_categories")
 }

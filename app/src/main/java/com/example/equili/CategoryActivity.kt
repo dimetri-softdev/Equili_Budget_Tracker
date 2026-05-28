@@ -5,10 +5,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.EditText
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -105,18 +102,40 @@ class CategoryActivity : AppCompatActivity() {
         }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
-            // Programmatically creating a TextView for each category item for simplicity
-            val tv = TextView(parent.context).apply {
-                textSize = 18f
-                setTextColor(0xFFFFFFFF.toInt())
+            val layout = LinearLayout(parent.context).apply {
+                orientation = LinearLayout.HORIZONTAL
                 setPadding(16, 16, 16, 16)
+                gravity = android.view.Gravity.CENTER_VERTICAL
                 layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
             }
-            return VH(tv)
+            val iv = ImageView(parent.context).apply {
+                id = View.generateViewId()
+                layoutParams = LinearLayout.LayoutParams(60, 60).apply { marginEnd = 16 }
+            }
+            val tv = TextView(parent.context).apply {
+                id = View.generateViewId()
+                textSize = 18f
+                setTextColor(0xFFFFFFFF.toInt())
+            }
+            layout.addView(iv)
+            layout.addView(tv)
+            return VH(layout)
         }
 
         override fun onBindViewHolder(holder: VH, position: Int) {
-            (holder.itemView as TextView).text = list[position].name
+            val item = list[position]
+            val container = holder.itemView as LinearLayout
+            val iv = container.getChildAt(0) as ImageView
+            val tv = container.getChildAt(1) as TextView
+
+            tv.text = item.name
+
+            // Resolve icon resource ID
+            val resId = holder.itemView.context.resources.getIdentifier(
+                item.icon, "drawable", holder.itemView.context.packageName
+            )
+            iv.setImageResource(if (resId != 0) resId else R.drawable.ic_categories)
+            iv.setColorFilter(0xFF00FFFF.toInt()) // Equili Cyan
         }
 
         override fun getItemCount() = list.size
