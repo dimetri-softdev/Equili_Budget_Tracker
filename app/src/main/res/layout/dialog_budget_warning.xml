@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    dialog_budget_warning.xml
+    Shown when the user exceeds 80% of their monthly max goal.
+    Contains an animated progress bar and a clear percentage readout.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="20dp"
+    android:gravity="center">
+
+    <!-- Warning icon (large emoji) -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="⚠️"
+        android:textSize="52sp"
+        android:gravity="center" />
+
+    <!-- Percentage display -->
+    <TextView
+        android:id="@+id/tvWarningPercent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="80% of your budget used!"
+        android:textStyle="bold"
+        android:textSize="20sp"
+        android:textColor="#FF6D00"
+        android:layout_marginTop="10dp"
+        android:gravity="center"/>
+
+    <!-- Divider -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#33FFFFFF"
+        android:layout_marginVertical="14dp"/>
+
+    <!-- Progress bar label -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Monthly Budget Usage"
+        android:textColor="#AAAAAA"
+        android:textSize="12sp"
+        android:layout_marginBottom="6dp"/>
+
+    <!-- Progress bar (shakes on display) -->
+    <ProgressBar
+        android:id="@+id/pbWarning"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="18dp"
+        android:progress="80"
+        android:progressTint="#FF6D00"
+        android:progressBackgroundTint="#40FFFFFF" />
+
+    <!-- Min / Max labels -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="4dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="R0"
+            android:textColor="#AAAAAA"
+            android:textSize="11sp"/>
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Max Goal"
+            android:textColor="#AAAAAA"
+            android:textSize="11sp"
+            android:gravity="end"/>
+    </LinearLayout>
+
+    <!-- Tip text -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="💡 Tip: Review your largest expenses and see where you can cut back."
+        android:textColor="#CCCCCC"
+        android:textSize="12sp"
+        android:layout_marginTop="14dp"
+        android:gravity="center"/>
+
+</LinearLayout>

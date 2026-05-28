@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Confetti Pop: Used on the Level-Up icon for extra excitement -->
+<set xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Rapid scale bounce -->
+    <scale
+        android:fromXScale="0.0"
+        android:toXScale="1.25"
+        android:fromYScale="0.0"
+        android:toYScale="1.25"
+        android:pivotX="50%"
+        android:pivotY="50%"
+        android:interpolator="@android:anim/overshoot_interpolator"
+        android:duration="500" />
+
+    <!-- Settle back -->
+    <scale
+        android:fromXScale="1.25"
+        android:toXScale="1.0"
+        android:fromYScale="1.25"
+        android:toYScale="1.0"
+        android:pivotX="50%"
+        android:pivotY="50%"
+        android:startOffset="500"
+        android:duration="200" />
+
+    <!-- Rotate spin -->
+    <rotate
+        android:fromDegrees="0"
+        android:toDegrees="20"
+        android:pivotX="50%"
+        android:pivotY="50%"
+        android:duration="150"
+        android:startOffset="500"
+        android:repeatCount="3"
+        android:repeatMode="reverse"/>
+
+    <!-- Fade in -->
+    <alpha
+        android:fromAlpha="0.0"
+        android:toAlpha="1.0"
+        android:duration="300" />
+
+</set>
