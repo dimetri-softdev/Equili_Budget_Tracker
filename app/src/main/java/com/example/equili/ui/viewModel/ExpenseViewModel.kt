@@ -9,17 +9,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.*
 
-/**
- * ExpenseViewModel manages UI-related data for the app.
- * Upgraded by Nelson with Search/Sort features and synced with Dimetri's Firebase foundation.
- *
- * Silindokuhle extensions:
- *  - Budget Alert system  → budgetWarningEvent LiveData consumed by DashboardActivity.
- *  - Badges/Achievements  → badgeUnlockedEvent with FIRST_EXPENSE, STREAK_7, UNDER_BUDGET,
- *                            LEVEL_5, and SAVER_7 milestones.
- *  - Level-Up animation   → levelUpEvent LiveData triggers overlay in DashboardActivity.
- *  - Thread-safe XP reads → currentUser snapshot captured on Main before IO work.
- */
 class ExpenseViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository = ExpenseRepository()
@@ -119,7 +108,7 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
     fun setSearchQuery(query: String)        { searchQuery.value = query }
     fun setSortOption(option: SortOption)    { sortOption.value = option }
 
-    /** No longer needed; Firebase Auth manages the session. Kept for legacy compatibility. */
+    /** Not needed now because Firebase Auth manages the session. Kept for legacy compatibility. */
     fun setCurrentUser(email: String) {}
 
     fun consumeBudgetWarning() { _budgetWarningEvent.value = null }
@@ -170,14 +159,6 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
     // BUDGET ALERT
     // -----------------------------------------------------------------------------------------
 
-    /**
-     * Checks if the user has crossed 80% of their maximum monthly goal.
-     * Emits a [_budgetWarningEvent] with the rounded percentage so the UI can show a popup.
-     * Only fires once per threshold crossing (UI must call [consumeBudgetWarning]).
-     *
-     * @param spent   Total amount spent this month.
-     * @param maxGoal The user's configured maximum monthly goal.
-     */
     fun checkBudgetAlert(spent: Double, maxGoal: Double) {
         if (maxGoal <= 0) return
         val percent = ((spent / maxGoal) * 100).toInt()
@@ -186,15 +167,6 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
-    /**
-     * Checks if the user is under budget and awards relevant badges.
-     * Also increments [UserModel.underBudgetDays] for the SAVER_7 milestone.
-     *
-     * Call from the UI whenever spending data is refreshed (e.g. on each expense list update).
-     *
-     * @param spent   Total amount spent this month.
-     * @param maxGoal The user's configured maximum monthly goal.
-     */
     fun checkUnderBudgetBadge(spent: Double, maxGoal: Double) = viewModelScope.launch {
         val user = currentUser.value ?: return@launch
         if (maxGoal > 0 && spent < maxGoal) {
@@ -230,13 +202,6 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
     // XP & LEVELLING (thread-safe: user snapshot passed in from Main)
     // -----------------------------------------------------------------------------------------
 
-    /**
-     * Adds [amount] XP to the user, levels up if threshold is crossed, and persists the update.
-     *
-     * @param amount       XP to add.
-     * @param userSnapshot The [UserModel] captured on the Main thread before the IO call.
-     *                     Falls back to [currentUser.value] if null (best-effort).
-     */
     private fun addXp(amount: Int, userSnapshot: UserModel? = null) = viewModelScope.launch {
         val userValue = userSnapshot ?: currentUser.value ?: return@launch
         var newXp     = userValue.xp + amount

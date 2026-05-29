@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Streak Badge: Fire / Flame shape -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+
+    <!-- Orange badge circle -->
+    <path
+        android:fillColor="#FF6600"
+        android:pathData="M24,4 C12.95,4 4,12.95 4,24 C4,35.05 12.95,44 24,44 C35.05,44 44,35.05 44,24 C44,12.95 35.05,4 24,4 Z"/>
+
+    <!-- Flame icon -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M24,38 C18,38 14,33 14,28 C14,22 18,20 20,14 C20,14 21,18 22,20 C22,20 24,16 24,10 C24,10 30,16 30,24 C30,24 31,22 31,20 C31,20 34,23 34,28 C34,33 30,38 24,38 Z"/>
+
+    <!-- Inner flame highlight -->
+    <path
+        android:fillColor="#FF6600"
+        android:pathData="M24,34 C21,34 19,31 19,28 C19,25 21,24 22,21 C22,21 23,23 24,25 C24,25 27,22 27,19 C27,19 30,22 30,27 C30,31 27,34 24,34 Z"/>
+
+</vector>

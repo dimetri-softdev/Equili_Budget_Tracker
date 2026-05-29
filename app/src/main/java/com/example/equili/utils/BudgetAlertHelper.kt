@@ -15,12 +15,10 @@ import com.example.equili.R
  * BudgetAlertHelper centralises all budget-alert notification logic for Equili.
  *
  * Responsibilities:
- *  1. Create the Android notification channel (required on API 26+).
+ *  1. Creates the Android notification channel (required on API 26+).
  *  2. Fire a system notification when the user crosses the 80% budget threshold.
  *  3. Provide reusable percentage-tier helpers consumed by both the ViewModel and UI.
- *
- * Silindokuhle – Alert System implementation (Firebase Realtime back-end feeds the triggers
- * via ExpenseViewModel.checkBudgetAlert; this class handles the delivery layer).
+
  */
 object BudgetAlertHelper {
 
@@ -55,16 +53,6 @@ object BudgetAlertHelper {
     // Notification Delivery
     // ------------------------------------------------------------------
 
-    /**
-     * Posts a persistent system notification alerting the user that they have used
-     * [percent]% of their monthly budget.
-     *
-     * The notification deep-links back to [DashboardActivity] so the user can
-     * immediately review their spending.
-     *
-     * @param context Android context.
-     * @param percent The rounded percentage of the max goal already spent (e.g. 85).
-     */
     fun postBudgetWarningNotification(context: Context, percent: Int) {
         val tapIntent = Intent(context, DashboardActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP

@@ -21,19 +21,6 @@ import com.example.equili.utils.BudgetAlertHelper
 import com.google.firebase.auth.FirebaseAuth
 import java.util.*
 
-/**
- * DashboardActivity is the main hub of the application.
- * It displays current spending, user level, streaks, and provides navigation to all features.
- *
- * Silindokuhle additions:
- *  - Budget Alert popup AND system notification when spending exceeds 80% of the max goal.
- *  - Level-Up overlay animation (zoom-bounce-fade) with confetti pop on icon.
- *  - Badge/Achievement unlock dialog with slide-in animation.
- *  - Save button pulse animation on goal save.
- *  - Profile button navigation (merged from main).
- *  - Under-budget badge check on every data refresh.
- *  - Runtime POST_NOTIFICATIONS permission request (Android 13+).
- */
 class DashboardActivity : AppCompatActivity() {
 
     private val viewModel: ExpenseViewModel by viewModels()
@@ -61,7 +48,7 @@ class DashboardActivity : AppCompatActivity() {
         setContentView(R.layout.activity_dashboard)
 
         // -----------------------------------------------------------------------
-        // Create the budget notification channel (safe to call multiple times)
+        // Budget notification channel (safe to call multiple times)
         // -----------------------------------------------------------------------
         BudgetAlertHelper.createNotificationChannel(this)
 
@@ -116,7 +103,7 @@ class DashboardActivity : AppCompatActivity() {
                 )
         }
 
-        // Navigate to User Profile
+        // Navigation for User Profile
         profileBtn.setOnClickListener {
             startActivity(Intent(this, ProfileActivity::class.java))
         }
@@ -253,12 +240,7 @@ class DashboardActivity : AppCompatActivity() {
     // BUDGET ALERT DIALOG
     // ===========================================================================
 
-    /**
-     * Displays a warning AlertDialog when the user has spent ≥ 80% of their monthly max goal.
-     * Progress bar shakes to draw extra attention. Also offers quick links to review or adjust.
-     *
-     * @param percent The current spend percentage (e.g. 82 means 82% of max goal used).
-     */
+
     private fun showBudgetWarningDialog(percent: Int) {
         val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_budget_warning, null)
         val tvPercent  = dialogView.findViewById<TextView>(R.id.tvWarningPercent)
@@ -267,7 +249,7 @@ class DashboardActivity : AppCompatActivity() {
         tvPercent.text = "$percent% of your budget used!"
         pbWarning.progress = percent.coerceIn(0, 100)
 
-        // Color the bar to match severity
+        // Bar color to match severity
         val barColor = when {
             percent >= 100 -> android.graphics.Color.parseColor("#FF1744")
             percent >= 90  -> android.graphics.Color.parseColor("#FF3D00")
@@ -306,15 +288,6 @@ class DashboardActivity : AppCompatActivity() {
     // LEVEL UP OVERLAY
     // ===========================================================================
 
-    /**
-     * Briefly shows a full-screen "Level Up" overlay with:
-     *  - A zoom-bounce-fade animation on the entire overlay
-     *  - A separate confetti-pop animation on the badge icon for extra excitement
-     *
-     * The overlay is automatically removed after the animation completes (~1.8 s).
-     *
-     * @param newLevel The level the user just reached.
-     */
     private fun showLevelUpOverlay(newLevel: Int) {
         val root = findViewById<androidx.constraintlayout.widget.ConstraintLayout>(
             R.id.dashboardRoot
@@ -332,7 +305,7 @@ class DashboardActivity : AppCompatActivity() {
         val confetti = AnimationUtils.loadAnimation(this, R.anim.confetti_pop)
         ivIcon.startAnimation(confetti)
 
-        // Then run the overall overlay fade / zoom
+        // Overall overlay fade / zoom
         val anim = AnimationUtils.loadAnimation(this, R.anim.level_up)
         anim.setAnimationListener(object : android.view.animation.Animation.AnimationListener {
             override fun onAnimationStart(a: android.view.animation.Animation?) {}
@@ -351,12 +324,6 @@ class DashboardActivity : AppCompatActivity() {
     // BADGE UNLOCK DIALOG
     // ===========================================================================
 
-    /**
-     * Shows a stylised dialog when the user earns a new achievement badge.
-     * Uses a slide-in-from-bottom animation on the badge icon for a celebratory feel.
-     *
-     * @param badge The [BadgeModel] that was just awarded.
-     */
     private fun showBadgeUnlockDialog(badge: BadgeModel) {
         val view   = LayoutInflater.from(this).inflate(R.layout.dialog_badge_unlock, null)
         val ivIcon = view.findViewById<ImageView>(R.id.ivBadgeIcon)
@@ -389,10 +356,6 @@ class DashboardActivity : AppCompatActivity() {
     // GOAL DIALOG (with save pulse animation)
     // ===========================================================================
 
-    /**
-     * Shows an AlertDialog for the user to input their minimum and maximum monthly goals.
-     * The Save button plays a pulse animation to celebrate the action.
-     */
     private fun showGoalDialog() {
         val view  = LayoutInflater.from(this).inflate(R.layout.dialog_goals, null)
         val etMin = view.findViewById<EditText>(R.id.etMinGoal)
@@ -446,10 +409,6 @@ class DashboardActivity : AppCompatActivity() {
     // PROGRESS BAR HELPER
     // ===========================================================================
 
-    /**
-     * Updates the monthly spending progress bar relative to the user's maximum goal.
-     * Colors the bar: cyan (safe) → orange (≥80%) → red (≥100%).
-     */
     private fun updateProgressBar(spent: Double, progressBar: ProgressBar) {
         val goal = viewModel.monthlyGoal.value
         val max  = goal?.maxGoal ?: 1000.0

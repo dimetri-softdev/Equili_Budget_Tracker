@@ -218,4 +218,24 @@ class ExpenseRepository {
         if (uid.isEmpty()) return
         db.child("users").child(uid).child("profile").setValue(user).await()
     }
+
+    /**
+     * Awards a badge to the current user if they don't already have it.
+     * Writes a single badge entry into the user's badges map in Firebase.
+     * Returns true if the badge was newly awarded, false if already owned.
+     */
+    suspend fun awardBadge(badge: com.example.equili.data.model.BadgeModel): Boolean {
+        val uid = getUid()
+        if (uid.isEmpty()) return false
+
+        // Only write the badge if not already earned (avoid duplicate award events)
+        val snapshot = db.child("users").child(uid).child("profile")
+            .child("badges").child(badge.id).get().await()
+        val existing = snapshot.getValue(com.example.equili.data.model.BadgeModel::class.java)
+        if (existing?.earned == true) return false
+
+        db.child("users").child(uid).child("profile")
+            .child("badges").child(badge.id).setValue(badge).await()
+        return true
+    }
 }
