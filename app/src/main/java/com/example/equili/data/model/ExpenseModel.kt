@@ -32,8 +32,11 @@ data class ExpenseModel(
     var endTime: String = "",
 
     /** Local or remote file path to the attached receipt image, if any. */
-    var imagePath: String? = null
+    var imagePath: String? = null,
+
+    /** The icon associated with the category at the time of creation. */
+    var categoryIcon: String = "ic_categories"
 ) : Serializable {
     // Required for Firebase Realtime Database
-    constructor() : this("", "", "", 0.0, "", 0, "", "", null)
+    constructor() : this("", "", "", 0.0, "", 0, "", "", null, "ic_categories")
 }

@@ -3,10 +3,7 @@ package com.example.equili
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
-import android.widget.Button
-import android.widget.EditText
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import com.example.equili.ui.viewModel.ExpenseViewModel
@@ -36,17 +33,24 @@ class LoginActivity : AppCompatActivity() {
         val etPass = findViewById<EditText>(R.id.etPassword)
         val btnLogin = findViewById<Button>(R.id.btnLogin)
         val tvForgotPassword = findViewById<TextView>(R.id.tvForgotPassword)
+        val btnBack = findViewById<ImageButton>(R.id.btnBack)
+
+        // Navigation: Back to landing screen
+        btnBack.setOnClickListener {
+            startActivity(Intent(this, MainActivity::class.java))
+            finish()
+        }
 
         // Login button click logic
         btnLogin.setOnClickListener {
             val email = etUser.text.toString().trim()
             val pass = etPass.text.toString()
 
-            // Step 1: Validate input fields are not empty
+            // Validate input fields are not empty
             if (email.isNotEmpty() && pass.isNotEmpty()) {
                 Log.d(TAG, "Attempting Firebase login for user: $email")
 
-                // --- Firebase Login Logic Start ---
+                // Firebase Login Logic Start
                 auth.signInWithEmailAndPassword(email, pass)
                     .addOnSuccessListener { result ->
                         // Successful login!

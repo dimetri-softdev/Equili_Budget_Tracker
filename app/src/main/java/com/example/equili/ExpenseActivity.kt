@@ -147,7 +147,11 @@ class ExpenseActivity : AppCompatActivity() {
         btnSave.setOnClickListener {
             val amountStr = etAmount.text.toString()
             val title = etTitle.text.toString()
-            val category = spinner.selectedItem?.toString() ?: "General"
+            val selectedCategoryName = spinner.selectedItem?.toString() ?: "General"
+
+            // Find the icon for the selected category
+            val selectedCategory = viewModel.allCategories.value?.find { it.name == selectedCategoryName }
+            val categoryIcon = selectedCategory?.icon ?: "ic_categories"
 
             if (amountStr.isNotEmpty() && title.isNotEmpty()) {
                 try {
@@ -158,7 +162,8 @@ class ExpenseActivity : AppCompatActivity() {
                         userId = "", // Handled by repository
                         title = title,
                         amount = amount,
-                        category = category,
+                        category = selectedCategoryName,
+                        categoryIcon = categoryIcon,
                         date = selectedDate.timeInMillis,
                         startTime = startTime,
                         endTime = endTime,

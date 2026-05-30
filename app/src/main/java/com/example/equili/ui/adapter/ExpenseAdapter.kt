@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.example.equili.R
 import com.example.equili.data.model.ExpenseModel
 import com.example.equili.databinding.ExpenseItemBinding
 import java.io.File
@@ -43,6 +44,12 @@ class ExpenseAdapter(
             tvCategory.text = "${expense.category} | ${expense.startTime} - ${expense.endTime}"
             tvAmount.text = String.format(Locale.getDefault(), "R%.2f", expense.amount)
             tvDate.text = sdf.format(Date(expense.date))
+
+            // Resolve and set Category Icon
+            val resId = holder.itemView.context.resources.getIdentifier(
+                expense.categoryIcon, "drawable", holder.itemView.context.packageName
+            )
+            ivCategoryIcon.setImageResource(if (resId != 0) resId else R.drawable.ic_categories)
 
             // Display a thumbnail if a receipt image is attached
             if (expense.imagePath != null) {
