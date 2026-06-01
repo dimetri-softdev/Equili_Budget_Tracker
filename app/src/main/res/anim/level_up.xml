@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Level Up Animation: Zooms in with a bounce, then fades out -->
+<set xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Fade in -->
+    <alpha
+        android:fromAlpha="0.0"
+        android:toAlpha="1.0"
+        android:duration="300" />
+
+    <!-- Scale up with overshoot -->
+    <scale
+        android:fromXScale="0.3"
+        android:toXScale="1.0"
+        android:fromYScale="0.3"
+        android:toYScale="1.0"
+        android:pivotX="50%"
+        android:pivotY="50%"
+        android:interpolator="@android:anim/overshoot_interpolator"
+        android:duration="400" />
+
+    <!-- Hold -->
+    <alpha
+        android:fromAlpha="1.0"
+        android:toAlpha="1.0"
+        android:startOffset="400"
+        android:duration="800" />
+
+    <!-- Fade out -->
+    <alpha
+        android:fromAlpha="1.0"
+        android:toAlpha="0.0"
+        android:startOffset="1200"
+        android:duration="400" />
+
+    <!-- Scale down on fade out -->
+    <scale
+        android:fromXScale="1.0"
+        android:toXScale="1.15"
+        android:fromYScale="1.0"
+        android:toYScale="1.15"
+        android:pivotX="50%"
+        android:pivotY="50%"
+        android:startOffset="1200"
+        android:duration="400" />
+
+</set>

@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    layout_level_up_overlay.xml
+    An animated overlay shown briefly when the user levels up.
+    Dynamically added to and removed from DashboardActivity's root layout.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/levelUpOverlay"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:background="#DD000011"
+    android:visibility="gone">
+
+    <!-- Decorative stars row (top) -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="✨  🌟  ✨  🌟  ✨"
+        android:textSize="22sp"
+        android:layout_marginBottom="8dp"/>
+
+    <!-- Trophy/Star icon (confetti_pop animation applied in code) -->
+    <ImageView
+        android:id="@+id/ivLevelUpIcon"
+        android:layout_width="120dp"
+        android:layout_height="120dp"
+        android:src="@drawable/ic_badge_level_up"
+        android:contentDescription="Level Up!" />
+
+    <!-- LEVEL UP headline -->
+    <TextView
+        android:id="@+id/tvLevelUpTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="LEVEL UP! 🎉"
+        android:textStyle="bold"
+        android:textSize="32sp"
+        android:textColor="#00FFFF"
+        android:layout_marginTop="16dp"/>
+
+    <!-- Dynamic subtitle set in code -->
+    <TextView
+        android:id="@+id/tvLevelUpSubtitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="You reached Level 2!"
+        android:textSize="18sp"
+        android:textColor="#FFFFFF"
+        android:layout_marginTop="6dp"/>
+
+    <!-- XP reward hint -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Keep budgeting to reach the next level!"
+        android:textSize="13sp"
+        android:textColor="#AAAAAA"
+        android:layout_marginTop="12dp"
+        android:gravity="center"/>
+
+    <!-- Decorative stars row (bottom) -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="🌟  ✨  🌟  ✨  🌟"
+        android:textSize="22sp"
+        android:layout_marginTop="12dp"/>
+
+</LinearLayout>
