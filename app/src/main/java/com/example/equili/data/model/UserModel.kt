@@ -31,6 +31,12 @@ data class UserModel(
      */
     var underBudgetDays: Int = 0,
 
+    /** Timestamp of the last budget check to prevent multiple increments per day. */
+    var lastBudgetCheckDate: Long = 0,
+
+    /** The last month (YYYY-MM) for which the goal was synchronized. */
+    var lastProcessedMonth: String = "",
+
     /**
      * Map of badge IDs to BadgeModel objects the user has earned.
      * Stored as a Firebase map: { "first_expense": { id, name, description, earned }, ... }
@@ -38,7 +44,7 @@ data class UserModel(
     var badges: Map<String, BadgeModel> = emptyMap()
 ) : Serializable {
     // Required for Firebase Realtime Database
-    constructor() : this("", "", 0, 1, 0, 0, 0, emptyMap())
+    constructor() : this("", "", 0, 1, 0, 0, 0, 0, "", emptyMap())
 
     /** Returns true if the user already holds a given badge. */
     fun hasBadge(type: BadgeType): Boolean = badges[type.id]?.earned == true

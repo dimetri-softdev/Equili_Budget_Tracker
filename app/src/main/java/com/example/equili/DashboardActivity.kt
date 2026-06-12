@@ -76,32 +76,7 @@ class DashboardActivity : AppCompatActivity() {
         val analyticsBtn = findViewById<Button>(R.id.analyticsBtn)
         val goalBtn      = findViewById<Button>(R.id.goalBtn)
         val logoutBtn    = findViewById<ImageButton>(R.id.btnLogout)
-        val themeBtn     = findViewById<ImageButton>(R.id.btnTheme)
         val profileBtn   = findViewById<ImageButton>(R.id.btnProfile)
-
-        // -----------------------------------------------------------------------
-        // Theme Toggle
-        // -----------------------------------------------------------------------
-        val isNightMode = resources.configuration.uiMode and
-                android.content.res.Configuration.UI_MODE_NIGHT_MASK ==
-                android.content.res.Configuration.UI_MODE_NIGHT_YES
-        themeBtn.setImageResource(
-            if (isNightMode) android.R.drawable.ic_menu_day
-            else android.R.drawable.ic_menu_recent_history
-        )
-        themeBtn.setOnClickListener {
-            val isCurrentlyNight = resources.configuration.uiMode and
-                    android.content.res.Configuration.UI_MODE_NIGHT_MASK ==
-                    android.content.res.Configuration.UI_MODE_NIGHT_YES
-            if (isCurrentlyNight)
-                androidx.appcompat.app.AppCompatDelegate.setDefaultNightMode(
-                    androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_NO
-                )
-            else
-                androidx.appcompat.app.AppCompatDelegate.setDefaultNightMode(
-                    androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES
-                )
-        }
 
         // Navigation for User Profile
         profileBtn.setOnClickListener {

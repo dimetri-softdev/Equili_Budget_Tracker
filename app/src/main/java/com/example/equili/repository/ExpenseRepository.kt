@@ -181,12 +181,16 @@ class ExpenseRepository {
 
     // --- Goal Operations ---
 
-    fun getMonthlyGoal(): LiveData<GoalModel?> {
+    /**
+     * Retrieves the goal for a specific month.
+     * Path: users/{uid}/goals/{month}
+     */
+    fun getMonthlyGoal(month: String): LiveData<GoalModel?> {
         val liveData = MutableLiveData<GoalModel?>()
         val uid = getUid()
         if (uid.isEmpty()) return liveData
 
-        db.child("users").child(uid).child("goals")
+        db.child("users").child(uid).child("goals").child(month)
             .addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     liveData.value = snapshot.getValue(GoalModel::class.java)
@@ -196,11 +200,22 @@ class ExpenseRepository {
         return liveData
     }
 
+    /** One-shot fetch of a goal for transition logic. */
+    suspend fun getGoalSnapshot(month: String): GoalModel? {
+        val uid = getUid()
+        if (uid.isEmpty()) return null
+        return db.child("users").child(uid).child("goals").child(month).get().await()
+            .getValue(GoalModel::class.java)
+    }
+
+    /**
+     * Saves or updates a goal for its specific month.
+     */
     suspend fun updateGoal(goal: GoalModel) {
         val uid = getUid()
-        if (uid.isEmpty()) return
+        if (uid.isEmpty() || goal.month.isEmpty()) return
         goal.userId = uid
-        db.child("users").child(uid).child("goals").setValue(goal).await()
+        db.child("users").child(uid).child("goals").child(goal.month).setValue(goal).await()
     }
 
     // --- User Profile Operations ---

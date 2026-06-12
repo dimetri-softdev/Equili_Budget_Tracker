@@ -51,7 +51,7 @@
         app:layout_constraintStart_toEndOf="@id/logo"
         app:layout_constraintTop_toTopOf="@id/logo" />
 
-    <!-- Action buttons (Profile, Theme and Logout) -->
+    <!-- Action buttons (Profile and Logout) -->
     <ImageButton
         android:id="@+id/btnProfile"
         android:layout_width="wrap_content"
@@ -62,21 +62,8 @@
         app:tint="?attr/appTextColorPrimary"
         app:layout_constraintTop_toTopOf="@id/logo"
         app:layout_constraintBottom_toBottomOf="@id/logo"
-        app:layout_constraintEnd_toStartOf="@id/btnTheme"
-        android:contentDescription="User Profile" />
-
-    <ImageButton
-        android:id="@+id/btnTheme"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:src="@android:drawable/ic_menu_day"
-        android:background="?attr/selectableItemBackground"
-        android:layout_marginEnd="8dp"
-        app:tint="?attr/appTextColorPrimary"
-        app:layout_constraintTop_toTopOf="@id/logo"
-        app:layout_constraintBottom_toBottomOf="@id/logo"
         app:layout_constraintEnd_toStartOf="@id/btnLogout"
-        android:contentDescription="Toggle Theme" />
+        android:contentDescription="User Profile" />
 
     <ImageButton
         android:id="@+id/btnLogout"

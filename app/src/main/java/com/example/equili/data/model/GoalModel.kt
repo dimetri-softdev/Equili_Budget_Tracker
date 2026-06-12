@@ -14,8 +14,11 @@ data class GoalModel(
     var minGoal: Double = 0.0,
 
     /** The maximum spending limit for the month. */
-    var maxGoal: Double = 1000.0
+    var maxGoal: Double = 1000.0,
+
+    /** The month this goal applies to (format: YYYY-MM). */
+    var month: String = ""
 ) : Serializable {
     // Required for Firebase Realtime Database
-    constructor() : this("", 0.0, 1000.0)
+    constructor() : this("", 0.0, 1000.0, "")
 }
