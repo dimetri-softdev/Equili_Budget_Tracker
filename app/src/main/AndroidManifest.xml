@@ -66,6 +66,9 @@
         <activity
             android:name=".ProfileActivity"
             android:exported="false" />
+        <activity
+            android:name=".RewardsActivity"
+            android:exported="false" />
 
         <!-- MainActivity is the entry point of the app -->
         <activity

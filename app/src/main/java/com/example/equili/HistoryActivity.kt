@@ -166,6 +166,10 @@ class HistoryActivity : AppCompatActivity() {
                     startActivity(Intent(this, AnalyticsActivity::class.java))
                     false
                 }
+                R.id.nav_rewards -> {
+                    startActivity(Intent(this, RewardsActivity::class.java))
+                    false
+                }
                 R.id.nav_categories -> {
                     startActivity(Intent(this, CategoryActivity::class.java))
                     false

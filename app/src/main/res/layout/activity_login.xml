@@ -84,6 +84,16 @@
             android:padding="12dp"
             android:background="@drawable/glass_card"/>
 
+        <CheckBox
+            android:id="@+id/cbShowPassword"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start"
+            android:layout_marginTop="8dp"
+            android:text="Show Password"
+            android:textColor="?attr/appTextColorPrimary"
+            android:buttonTint="?attr/colorPrimary" />
+
         <!-- Action: Perform Login -->
         <Button
             android:id="@+id/btnLogin"

@@ -205,6 +205,7 @@ class DashboardActivity : AppCompatActivity() {
                 R.id.nav_home       -> true
                 R.id.nav_history    -> { startActivity(Intent(this, HistoryActivity::class.java));   false }
                 R.id.nav_analytics  -> { startActivity(Intent(this, AnalyticsActivity::class.java)); false }
+                R.id.nav_rewards    -> { startActivity(Intent(this, RewardsActivity::class.java));   false }
                 R.id.nav_categories -> { startActivity(Intent(this, CategoryActivity::class.java));  false }
                 else -> false
             }

@@ -31,9 +31,21 @@ class LoginActivity : AppCompatActivity() {
         // UI component initialization
         val etUser = findViewById<EditText>(R.id.etUsername)
         val etPass = findViewById<EditText>(R.id.etPassword)
+        val cbShow = findViewById<CheckBox>(R.id.cbShowPassword)
         val btnLogin = findViewById<Button>(R.id.btnLogin)
         val tvForgotPassword = findViewById<TextView>(R.id.tvForgotPassword)
         val btnBack = findViewById<ImageButton>(R.id.btnBack)
+
+        // Show/Hide password toggle
+        cbShow.setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked) {
+                etPass.inputType = android.text.InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
+            } else {
+                etPass.inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
+            }
+            // Move cursor to end
+            etPass.setSelection(etPass.text.length)
+        }
 
         // Navigation: Back to landing screen
         btnBack.setOnClickListener {

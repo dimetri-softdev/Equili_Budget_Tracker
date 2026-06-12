@@ -20,6 +20,12 @@
         android:icon="@drawable/ic_analytics"
         android:title="Analytics" />
 
+    <!-- Link to Rewards/Gamification -->
+    <item
+        android:id="@+id/nav_rewards"
+        android:icon="@android:drawable/btn_star_big_on"
+        android:title="Rewards" />
+
     <!-- Link to CategoryActivity -->
     <item
         android:id="@+id/nav_categories"

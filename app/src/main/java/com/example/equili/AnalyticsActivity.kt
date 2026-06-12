@@ -14,10 +14,11 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.equili.data.model.CategoryTotal
 import com.example.equili.ui.viewModel.ExpenseViewModel
+import com.github.mikephil.charting.charts.BarChart
 import com.github.mikephil.charting.charts.PieChart
-import com.github.mikephil.charting.data.PieData
-import com.github.mikephil.charting.data.PieDataSet
-import com.github.mikephil.charting.data.PieEntry
+import com.github.mikephil.charting.components.LimitLine
+import com.github.mikephil.charting.data.*
+import com.github.mikephil.charting.formatter.IndexValueFormatter
 import com.github.mikephil.charting.formatter.PercentFormatter
 import com.github.mikephil.charting.utils.ColorTemplate
 import com.google.firebase.auth.FirebaseAuth
@@ -49,6 +50,7 @@ class AnalyticsActivity : AppCompatActivity() {
 
     private lateinit var adapter: AnalyticsAdapter
     private lateinit var pieChart: PieChart
+    private lateinit var barChart: BarChart
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -68,8 +70,10 @@ class AnalyticsActivity : AppCompatActivity() {
         val tvEnd = findViewById<TextView>(R.id.tvEndAnalytic)
         val rv = findViewById<RecyclerView>(R.id.rvAnalytics)
         pieChart = findViewById(R.id.pieChart)
+        barChart = findViewById(R.id.barChart)
 
         setupPieChart()
+        setupBarChart()
 
         // Set up RecyclerView for textual breakdown
         rv.layoutManager = LinearLayoutManager(this)
@@ -110,6 +114,10 @@ class AnalyticsActivity : AppCompatActivity() {
                     false
                 }
                 R.id.nav_analytics -> true
+                R.id.nav_rewards -> {
+                    startActivity(Intent(this, RewardsActivity::class.java))
+                    false
+                }
                 R.id.nav_categories -> {
                     startActivity(Intent(this, CategoryActivity::class.java))
                     false
@@ -188,11 +196,91 @@ class AnalyticsActivity : AppCompatActivity() {
         pieChart.invalidate() // Refresh chart
     }
 
+    private fun setupBarChart() {
+        barChart.description.isEnabled = false
+        barChart.setDrawGridBackground(false)
+        barChart.setDrawBarShadow(false)
+        barChart.isHighlightFullBarEnabled = false
+
+        barChart.xAxis.apply {
+            position = com.github.mikephil.charting.components.XAxis.XAxisPosition.BOTTOM
+            setDrawGridLines(false)
+            textColor = Color.WHITE
+            granularity = 1f
+        }
+
+        barChart.axisLeft.apply {
+            textColor = Color.WHITE
+            setDrawGridLines(true)
+            gridColor = Color.parseColor("#33FFFFFF")
+        }
+
+        barChart.axisRight.isEnabled = false
+        barChart.legend.textColor = Color.WHITE
+    }
+
+    private fun updateBarChart(dataList: List<CategoryTotal>) {
+        val entries = ArrayList<BarEntry>()
+        val labels = ArrayList<String>()
+
+        dataList.forEachIndexed { index, item ->
+            entries.add(BarEntry(index.toFloat(), item.total.toFloat()))
+            labels.add(item.name)
+        }
+
+        if (entries.isEmpty()) {
+            barChart.clear()
+            return
+        }
+
+        barChart.xAxis.valueFormatter = IndexValueFormatter(labels)
+
+        val dataSet = BarDataSet(entries, "Spent per Category")
+        dataSet.color = Color.parseColor("#00FFFF") // Equili Cyan
+        dataSet.valueTextColor = Color.WHITE
+        dataSet.valueTextSize = 10f
+
+        val data = BarData(dataSet)
+        barChart.data = data
+
+        // Add Goal Limit Lines (Min and Max)
+        val yAxis = barChart.axisLeft
+        yAxis.removeAllLimitLines()
+
+        viewModel.monthlyGoal.value?.let { goal ->
+            if (goal.minGoal > 0) {
+                val minLine = LimitLine(goal.minGoal.toFloat(), "Min Goal")
+                minLine.lineColor = Color.GREEN
+                minLine.lineWidth = 2f
+                minLine.textColor = Color.GREEN
+                minLine.textSize = 10f
+                yAxis.addLimitLine(minLine)
+            }
+            if (goal.maxGoal > 0) {
+                val maxLine = LimitLine(goal.maxGoal.toFloat(), "Max Goal")
+                maxLine.lineColor = Color.RED
+                maxLine.lineWidth = 2f
+                maxLine.textColor = Color.RED
+                maxLine.textSize = 10f
+                yAxis.addLimitLine(maxLine)
+            }
+        }
+
+        barChart.invalidate()
+    }
+
     private fun observeAnalytics() {
         viewModel.getCategoryTotalsInRange(startDate.timeInMillis, endDate.timeInMillis).observe(this) {
             val list = it ?: emptyList()
             adapter.submitList(list)
             updatePieChart(list)
+            updateBarChart(list)
+        }
+
+        // Also observe goals to update limit lines if goals change
+        viewModel.monthlyGoal.observe(this) {
+            val list = adapter.getCurrentList()
+            updateBarChart(list)
         }
     }
 
@@ -218,6 +306,8 @@ class AnalyticsActivity : AppCompatActivity() {
             items = l.sortedByDescending { it.total }
             notifyDataSetChanged()
         }
+
+        fun getCurrentList() = items
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = VH(
             LayoutInflater.from(parent.context).inflate(android.R.layout.simple_list_item_2, parent, false)
