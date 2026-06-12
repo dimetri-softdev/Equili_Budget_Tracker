@@ -18,8 +18,8 @@ import com.github.mikephil.charting.charts.BarChart
 import com.github.mikephil.charting.charts.PieChart
 import com.github.mikephil.charting.components.LimitLine
 import com.github.mikephil.charting.data.*
-import com.github.mikephil.charting.formatter.IndexValueFormatter
 import com.github.mikephil.charting.formatter.PercentFormatter
+import com.github.mikephil.charting.formatter.ValueFormatter
 import com.github.mikephil.charting.utils.ColorTemplate
 import com.google.firebase.auth.FirebaseAuth
 import java.text.SimpleDateFormat
@@ -233,7 +233,11 @@ class AnalyticsActivity : AppCompatActivity() {
             return
         }
 
-        barChart.xAxis.valueFormatter = IndexValueFormatter(labels)
+        barChart.xAxis.valueFormatter = object : ValueFormatter() {
+            override fun getFormattedValue(value: Float): String {
+                return labels.getOrNull(value.toInt()) ?: ""
+            }
+        }
 
         val dataSet = BarDataSet(entries, "Spent per Category")
         dataSet.color = Color.parseColor("#00FFFF") // Equili Cyan
