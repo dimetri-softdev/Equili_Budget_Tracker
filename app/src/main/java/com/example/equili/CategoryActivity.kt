@@ -55,10 +55,24 @@ class CategoryActivity : AppCompatActivity() {
         btnAdd.setOnClickListener {
             val name = etName.text.toString().trim()
             if (name.isNotEmpty()) {
+                // Auto-assign icon based on name keywords
+                val lowerName = name.lowercase()
+                val icon = when {
+                    lowerName.contains("food") || lowerName.contains("eat") || lowerName.contains("drink") -> "ic_food"
+                    lowerName.contains("transport") || lowerName.contains("car") || lowerName.contains("bus") || lowerName.contains("taxi") -> "ic_transport"
+                    lowerName.contains("game") || lowerName.contains("playstation") || lowerName.contains("xbox") || lowerName.contains("nintendo") -> "ic_games"
+                    lowerName.contains("sport") || lowerName.contains("gym") || lowerName.contains("football") || lowerName.contains("soccer") -> "ic_sports"
+                    lowerName.contains("health") || lowerName.contains("med") || lowerName.contains("doctor") || lowerName.contains("hospital") -> "ic_health"
+                    lowerName.contains("shop") || lowerName.contains("buy") || lowerName.contains("grocery") -> "ic_shopping"
+                    lowerName.contains("utility") || lowerName.contains("bill") || lowerName.contains("electricity") || lowerName.contains("water") -> "ic_utilities"
+                    lowerName.contains("entertainment") || lowerName.contains("movie") || lowerName.contains("music") || lowerName.contains("cinema") -> "ic_entertainment"
+                    else -> "ic_categories"
+                }
+
                 // Save the new category
-                viewModel.insertCategory(CategoryModel(name = name))
+                viewModel.insertCategory(CategoryModel(name = name, icon = icon))
                 etName.setText("") // Clear input field
-                Toast.makeText(this, "Category Added", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Category '$name' Added with icon", Toast.LENGTH_SHORT).show()
             } else {
                 Toast.makeText(this, "Please enter a category name", Toast.LENGTH_SHORT).show()
             }

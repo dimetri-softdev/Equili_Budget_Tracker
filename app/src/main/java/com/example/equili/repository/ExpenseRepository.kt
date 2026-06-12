@@ -152,10 +152,12 @@ class ExpenseRepository {
         val defaults = mapOf(
             "Food" to "ic_food",
             "Transport" to "ic_transport",
-            "Shopping" to "ic_categories",
-            "Entertainment" to "ic_categories",
-            "Health" to "ic_categories",
-            "Utilities" to "ic_categories"
+            "Shopping" to "ic_shopping",
+            "Entertainment" to "ic_entertainment",
+            "Health" to "ic_health",
+            "Utilities" to "ic_utilities",
+            "Games" to "ic_games",
+            "Sports" to "ic_sports"
         )
         val ref = db.child("users").child(uid).child("categories")
         defaults.forEach { (name, icon) ->
