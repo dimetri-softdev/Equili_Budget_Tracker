@@ -13,6 +13,21 @@ data class UserModel(
     /** User's email address. */
     var email: String = "",
 
+    /** User's display name or username. */
+    var username: String = "",
+
+    /** User's gender. */
+    var gender: String = "",
+
+    /** User's home or mailing address. */
+    var address: String = "",
+
+    /** User's date of birth (Format: dd/MM/yyyy). */
+    var dob: String = "",
+
+    /** Whether the user is currently employed. */
+    var isEmployed: Boolean = false,
+
     /** Accumulated Experience Points (XP). */
     var xp: Int = 0,
 
@@ -44,7 +59,7 @@ data class UserModel(
     var badges: Map<String, BadgeModel> = emptyMap()
 ) : Serializable {
     // Required for Firebase Realtime Database
-    constructor() : this("", "", 0, 1, 0, 0, 0, 0, "", emptyMap())
+    constructor() : this("", "", "", "", "", "", false, 0, 1, 0, 0L, 0, 0L, "", emptyMap())
 
     /** Returns true if the user already holds a given badge. */
     fun hasBadge(type: BadgeType): Boolean = badges[type.id]?.earned == true

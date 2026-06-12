@@ -27,4 +27,14 @@ object ValidationUtils {
         val emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}\$".toRegex()
         return email.matches(emailRegex)
     }
+
+    /**
+     * Validates username.
+     * Rules: 3-20 characters, alphanumeric or common symbols.
+     */
+    fun isValidUsername(username: String): Boolean {
+        if (username.length < 3 || username.length > 20) return false
+        val usernameRegex = "^[a-zA-Z0-9._ ]+\$".toRegex()
+        return username.matches(usernameRegex)
+    }
 }

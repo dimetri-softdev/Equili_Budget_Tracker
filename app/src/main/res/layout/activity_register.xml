@@ -22,90 +22,188 @@
         android:layout_height="match_parent"
         android:background="?attr/appOverlayColor"/>
 
-    <LinearLayout
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:gravity="center"
-        android:padding="24dp">
+        android:fillViewport="true">
 
-        <!-- Back Button -->
-        <ImageButton
-            android:id="@+id/btnBack"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="start"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@drawable/ic_back"
-            app:tint="?attr/appTextColorPrimary"
-            android:contentDescription="Back to Main" />
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1" />
-
-        <!-- Logo and App Name -->
-        <ImageView
-            android:layout_width="100dp"
-            android:layout_height="100dp"
-            android:src="@drawable/equili_logo"
-            android:layout_marginBottom="16dp"/>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Equili"
-            android:textSize="28sp"
-            android:textStyle="bold"
-            android:textColor="?attr/colorPrimary"/>
-
-        <!-- Screen Header -->
-        <TextView
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Create Account"
-            android:textSize="24sp"
-            android:textColor="?attr/colorPrimary"
-            android:gravity="center"
-            android:layout_marginTop="16dp"
-            android:layout_marginBottom="16dp"/>
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
+            android:padding="24dp">
 
-        <!-- Input: Email address -->
-        <EditText
-            android:id="@+id/etEmail"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Email (Username)"
-            android:inputType="textEmailAddress"
-            android:textColor="?attr/appTextColorPrimary"
-            android:textColorHint="?attr/appTextColorSecondary"
-            android:padding="12dp"
-            android:background="@drawable/glass_card"/>
+            <!-- Back Button -->
+            <ImageButton
+                android:id="@+id/btnBack"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="start"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_back"
+                app:tint="?attr/appTextColorPrimary"
+                android:contentDescription="Back to Main" />
 
-        <!-- Input: Password with hidden characters -->
-        <EditText
-            android:id="@+id/etPassword"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:hint="Password"
-            android:inputType="textPassword"
-            android:textColor="?attr/appTextColorPrimary"
-            android:textColorHint="?attr/appTextColorSecondary"
-            android:padding="12dp"
-            android:background="@drawable/glass_card"/>
+            <!-- Logo and App Name -->
+            <ImageView
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:src="@drawable/equili_logo"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp"/>
 
-        <!-- Action: Submit Registration -->
-        <Button
-            android:id="@+id/btnRegister"
-            android:text="Register"
-            android:layout_marginTop="24dp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:backgroundTint="?attr/colorPrimary"
-            android:textColor="@color/black"
-            android:textSize="18sp"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Equili"
+                android:textSize="28sp"
+                android:textStyle="bold"
+                android:textColor="?attr/colorPrimary"/>
 
-    </LinearLayout>
+            <!-- Screen Header -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Create Account"
+                android:textSize="22sp"
+                android:textColor="?attr/colorPrimary"
+                android:gravity="center"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="16dp"/>
+
+            <!-- Input: Username -->
+            <EditText
+                android:id="@+id/etUsername"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Full Name / Username"
+                android:inputType="textPersonName"
+                android:textColor="?attr/appTextColorPrimary"
+                android:textColorHint="?attr/appTextColorSecondary"
+                android:padding="12dp"
+                android:background="@drawable/glass_card"/>
+
+            <!-- Input: Email address -->
+            <EditText
+                android:id="@+id/etEmail"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:hint="Email Address"
+                android:inputType="textEmailAddress"
+                android:textColor="?attr/appTextColorPrimary"
+                android:textColorHint="?attr/appTextColorSecondary"
+                android:padding="12dp"
+                android:background="@drawable/glass_card"/>
+
+            <!-- Input: Password with hidden characters -->
+            <EditText
+                android:id="@+id/etPassword"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:hint="Password"
+                android:inputType="textPassword"
+                android:textColor="?attr/appTextColorPrimary"
+                android:textColorHint="?attr/appTextColorSecondary"
+                android:padding="12dp"
+                android:background="@drawable/glass_card"/>
+
+            <CheckBox
+                android:id="@+id/cbShowPassword"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="start"
+                android:text="Show Password"
+                android:textColor="?attr/appTextColorPrimary"
+                android:buttonTint="?attr/colorPrimary" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#33FFFFFF"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="16dp"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Personal Information"
+                android:textColor="?attr/appTextColorSecondary"
+                android:textSize="14sp"
+                android:layout_marginBottom="8dp"/>
+
+            <!-- Input: Gender -->
+            <Spinner
+                android:id="@+id/spinnerGender"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="12dp"
+                android:background="@drawable/glass_card"
+                android:layout_marginBottom="12dp" />
+
+            <!-- Input: Date of Birth -->
+            <EditText
+                android:id="@+id/etDOB"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Date of Birth (Select)"
+                android:focusable="false"
+                android:clickable="true"
+                android:padding="12dp"
+                android:background="@drawable/glass_card"
+                android:layout_marginBottom="12dp"
+                android:textColor="?attr/appTextColorPrimary"
+                android:textColorHint="?attr/appTextColorSecondary"/>
+
+            <!-- Input: Address -->
+            <EditText
+                android:id="@+id/etAddress"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Physical Address"
+                android:inputType="textPostalAddress"
+                android:padding="12dp"
+                android:background="@drawable/glass_card"
+                android:layout_marginBottom="12dp"
+                android:textColor="?attr/appTextColorPrimary"
+                android:textColorHint="?attr/appTextColorSecondary"/>
+
+            <!-- Input: Employment Status -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="12dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Are you currently employed?"
+                    android:textColor="?attr/appTextColorPrimary" />
+
+                <Switch
+                    android:id="@+id/switchEmployed"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:thumbTint="?attr/colorPrimary"
+                    android:trackTint="?attr/appTextColorSecondary"/>
+            </LinearLayout>
+
+            <!-- Action: Submit Registration -->
+            <Button
+                android:id="@+id/btnRegister"
+                android:text="Register"
+                android:layout_marginTop="16dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:backgroundTint="?attr/colorPrimary"
+                android:textColor="@color/black"
+                android:textSize="18sp"/>
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
 </FrameLayout>
