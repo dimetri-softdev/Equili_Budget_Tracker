@@ -245,6 +245,18 @@
             android:textColor="?attr/appTextColorPrimary" />
 
         <Button
+            android:id="@+id/aiAdvisorBtn"
+            android:layout_width="0dp"
+            android:layout_height="80dp"
+            android:layout_columnWeight="1"
+            android:layout_margin="8dp"
+            android:backgroundTint="#40FF00FF"
+            android:text="Consult AI"
+            android:textColor="?attr/appTextColorPrimary"
+            app:icon="@android:drawable/ic_menu_help"
+            app:iconTint="?attr/appTextColorPrimary" />
+
+        <Button
             android:id="@+id/goalBtn"
             android:layout_width="0dp"
             android:layout_height="80dp"

@@ -74,6 +74,7 @@ class DashboardActivity : AppCompatActivity() {
         val categoryBtn  = findViewById<Button>(R.id.categoryBtn)
         val historyBtn   = findViewById<Button>(R.id.historyBtn)
         val analyticsBtn = findViewById<Button>(R.id.analyticsBtn)
+        val aiAdvisorBtn = findViewById<Button>(R.id.aiAdvisorBtn)
         val goalBtn      = findViewById<Button>(R.id.goalBtn)
         val logoutBtn    = findViewById<ImageButton>(R.id.btnLogout)
         val profileBtn   = findViewById<ImageButton>(R.id.btnProfile)
@@ -185,6 +186,8 @@ class DashboardActivity : AppCompatActivity() {
         categoryBtn.setOnClickListener  { startActivity(Intent(this, CategoryActivity::class.java)) }
         historyBtn.setOnClickListener   { startActivity(Intent(this, HistoryActivity::class.java)) }
         analyticsBtn.setOnClickListener { startActivity(Intent(this, AnalyticsActivity::class.java)) }
+
+        aiAdvisorBtn.setOnClickListener { showAiAdvisorDialog() }
 
         goalBtn.setOnClickListener { showGoalDialog() }
 
@@ -379,6 +382,46 @@ class DashboardActivity : AppCompatActivity() {
             }
         }
         dialog.show()
+    }
+
+    // ===========================================================================
+    // AI ADVISOR
+    // ===========================================================================
+
+    private fun showAiAdvisorDialog() {
+        val view = LayoutInflater.from(this).inflate(R.layout.dialog_ai_advisor, null)
+        val tvResponse = view.findViewById<TextView>(R.id.tvAiResponse)
+        val pbLoading = view.findViewById<ProgressBar>(R.id.pbAiLoading)
+
+        val dialog = AlertDialog.Builder(this)
+            .setView(view)
+            .setPositiveButton("Thanks AI!", null)
+            .create()
+
+        dialog.show()
+
+        // Simulate "Processing" with data analysis
+        pbLoading.visibility = View.VISIBLE
+        tvResponse.text = "Equili AI is reviewing your spending patterns..."
+
+        view.postDelayed({
+            pbLoading.visibility = View.GONE
+
+            val spent = viewModel.expensesInDateRange.value?.sumOf { it.amount } ?: 0.0
+            val goal = viewModel.monthlyGoal.value
+            val max = goal?.maxGoal ?: 0.0
+
+            val response = when {
+                max <= 0 -> "I see you haven't set a budget yet! Setting a goal is the first step to financial freedom."
+                spent > max -> "🚨 Critical Alert: You've exceeded your budget by R${String.format("%.2f", spent - max)}. I suggest pausing non-essential spending immediately."
+                spent > (max * 0.8) -> "⚠️ Warning: You've used over 80% of your budget. Try to cut back on Entertainment or Shopping for the rest of the month."
+                spent < (max * 0.3) && spent > 0 -> "🌟 Great job! You're well under budget. This is a perfect time to move some funds into your Savings category."
+                spent == 0.0 -> "Welcome! Log your first expense so I can begin analyzing your habits."
+                else -> "You're on the right track! Keeping your spending between R${String.format("%.0f", max * 0.1)} and R${String.format("%.0f", max * 0.8)} is ideal for your current goal."
+            }
+
+            tvResponse.text = response
+        }, 2000)
     }
 
     // ===========================================================================
