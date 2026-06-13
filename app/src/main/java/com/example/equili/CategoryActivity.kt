@@ -58,14 +58,25 @@ class CategoryActivity : AppCompatActivity() {
                 // Auto-assign icon based on name keywords
                 val lowerName = name.lowercase()
                 val icon = when {
-                    lowerName.contains("food") || lowerName.contains("eat") || lowerName.contains("drink") -> "ic_food"
-                    lowerName.contains("transport") || lowerName.contains("car") || lowerName.contains("bus") || lowerName.contains("taxi") -> "ic_transport"
-                    lowerName.contains("game") || lowerName.contains("playstation") || lowerName.contains("xbox") || lowerName.contains("nintendo") -> "ic_games"
-                    lowerName.contains("sport") || lowerName.contains("gym") || lowerName.contains("football") || lowerName.contains("soccer") -> "ic_sports"
-                    lowerName.contains("health") || lowerName.contains("med") || lowerName.contains("doctor") || lowerName.contains("hospital") -> "ic_health"
-                    lowerName.contains("shop") || lowerName.contains("buy") || lowerName.contains("grocery") -> "ic_shopping"
-                    lowerName.contains("utility") || lowerName.contains("bill") || lowerName.contains("electricity") || lowerName.contains("water") -> "ic_utilities"
-                    lowerName.contains("entertainment") || lowerName.contains("movie") || lowerName.contains("music") || lowerName.contains("cinema") -> "ic_entertainment"
+                    lowerName.contains("food") || lowerName.contains("eat") || lowerName.contains("drink") || lowerName.contains("restaurant") || lowerName.contains("cafe") -> "ic_food"
+                    lowerName.contains("transport") || lowerName.contains("car") || lowerName.contains("bus") || lowerName.contains("taxi") || lowerName.contains("uber") || lowerName.contains("fuel") || lowerName.contains("petrol") -> "ic_transport"
+                    lowerName.contains("game") || lowerName.contains("playstation") || lowerName.contains("xbox") || lowerName.contains("nintendo") || lowerName.contains("steam") -> "ic_games"
+                    lowerName.contains("sport") || lowerName.contains("gym") || lowerName.contains("football") || lowerName.contains("soccer") || lowerName.contains("basketball") || lowerName.contains("tennis") -> "ic_sports"
+                    lowerName.contains("health") || lowerName.contains("med") || lowerName.contains("doctor") || lowerName.contains("hospital") || lowerName.contains("pharmacy") || lowerName.contains("dentist") -> "ic_health"
+                    lowerName.contains("shop") || lowerName.contains("buy") || lowerName.contains("grocery") || lowerName.contains("mall") || lowerName.contains("market") -> "ic_shopping"
+                    lowerName.contains("utility") || lowerName.contains("bill") || lowerName.contains("electricity") || lowerName.contains("water") || lowerName.contains("wifi") || lowerName.contains("internet") || lowerName.contains("phone") -> "ic_utilities"
+                    lowerName.contains("entertainment") || lowerName.contains("movie") || lowerName.contains("music") || lowerName.contains("cinema") || lowerName.contains("party") || lowerName.contains("club") || lowerName.contains("event") -> "ic_entertainment"
+                    lowerName.contains("home") || lowerName.contains("rent") || lowerName.contains("house") || lowerName.contains("flat") || lowerName.contains("apartment") || lowerName.contains("furniture") -> "ic_home"
+                    lowerName.contains("education") || lowerName.contains("school") || lowerName.contains("university") || lowerName.contains("college") || lowerName.contains("book") || lowerName.contains("course") || lowerName.contains("tuition") -> "ic_education"
+                    lowerName.contains("travel") || lowerName.contains("trip") || lowerName.contains("vacation") || lowerName.contains("holiday") || lowerName.contains("flight") || lowerName.contains("hotel") -> "ic_travel"
+                    lowerName.contains("pet") || lowerName.contains("dog") || lowerName.contains("cat") || lowerName.contains("vet") -> "ic_pets"
+                    lowerName.contains("gift") || lowerName.contains("present") || lowerName.contains("donation") || lowerName.contains("charity") || lowerName.contains("birthday") -> "ic_gifts"
+                    lowerName.contains("work") || lowerName.contains("office") || lowerName.contains("business") || lowerName.contains("job") || lowerName.contains("freelance") -> "ic_work"
+                    lowerName.contains("beauty") || lowerName.contains("spa") || lowerName.contains("hair") || lowerName.contains("salon") || lowerName.contains("makeup") || lowerName.contains("care") -> "ic_beauty"
+                    lowerName.contains("save") || lowerName.contains("invest") || lowerName.contains("stock") || lowerName.contains("crypto") || lowerName.contains("piggy") -> "ic_savings"
+                    lowerName.contains("electronic") || lowerName.contains("gadget") || lowerName.contains("phone") || lowerName.contains("laptop") || lowerName.contains("computer") || lowerName.contains("tech") -> "ic_electronics"
+                    lowerName.contains("cloth") || lowerName.contains("fashion") || lowerName.contains("wear") || lowerName.contains("shoes") || lowerName.contains("shirt") -> "ic_clothing"
+                    lowerName.contains("tax") || lowerName.contains("gov") || lowerName.contains("legal") || lowerName.contains("fee") || lowerName.contains("fine") -> "ic_taxes"
                     else -> "ic_categories"
                 }
 
