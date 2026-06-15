@@ -12,7 +12,7 @@ Watch the full demonstration of the app here: [Equili App Overview](https://yout
 - **SILINDOKUHLE GQUKANI**
 
 ## 🌟 Advanced Features (Original Contributions)
-The following features were developed and integrated independently of the core assignment requirements:
+The following features are our own ideas:
 
 - **🔐 Advanced Biometric Security:** A secure login system utilizing Fingerprint/Face ID. This feature includes hardware support detection, automatic prompts for returning users, and secure account linking. (Developed by Dimetri Petes).
 - **🤖 Intelligent AI Financial Advisor:** A custom-built AI engine that analyzes real-time spending data, budget goals, and gamification progress. It provides personalized coaching, spending alerts, and financial status reports via a conversational chat interface. (Developed by Dimetri Petes).
