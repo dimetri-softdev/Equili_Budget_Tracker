@@ -10,9 +10,10 @@
     android:gravity="center_horizontal">
 
     <ImageView
-        android:layout_width="60dp"
-        android:layout_height="60dp"
-        android:src="@android:drawable/ic_menu_help"
+        android:id="@+id/ivAiFace"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:src="@drawable/ai_advisor_face"
         app:tint="?attr/colorPrimary"
         android:layout_marginBottom="12dp"
         android:contentDescription="AI Advisor" />

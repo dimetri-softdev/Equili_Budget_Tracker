@@ -6,8 +6,11 @@ import android.util.Log
 import android.widget.*
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.biometric.BiometricPrompt
+import androidx.core.content.ContextCompat
 import com.example.equili.ui.viewModel.ExpenseViewModel
 import com.google.firebase.auth.FirebaseAuth
+import java.util.concurrent.Executor
 
 /**
  * LoginActivity handles user authentication.
@@ -20,6 +23,9 @@ class LoginActivity : AppCompatActivity() {
 
     // Firebase Authentication instance
     private lateinit var auth: FirebaseAuth
+    private lateinit var executor: Executor
+    private lateinit var biometricPrompt: BiometricPrompt
+    private lateinit var promptInfo: BiometricPrompt.PromptInfo
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,8 +39,53 @@ class LoginActivity : AppCompatActivity() {
         val etPass = findViewById<EditText>(R.id.etPassword)
         val cbShow = findViewById<CheckBox>(R.id.cbShowPassword)
         val btnLogin = findViewById<Button>(R.id.btnLogin)
+        val btnBiometric = findViewById<ImageButton>(R.id.btnBiometric)
         val tvForgotPassword = findViewById<TextView>(R.id.tvForgotPassword)
         val btnBack = findViewById<ImageButton>(R.id.btnBack)
+
+        // Check if biometric is enabled
+        val prefs = getSharedPreferences("EquiliPrefs", MODE_PRIVATE)
+        val isBiometricEnabled = prefs.getBoolean("BIOMETRIC_ENABLED", false)
+        if (isBiometricEnabled) {
+            btnBiometric.visibility = Button.VISIBLE
+        }
+
+        executor = ContextCompat.getMainExecutor(this)
+        biometricPrompt = BiometricPrompt(this, executor,
+            object : BiometricPrompt.AuthenticationCallback() {
+                override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+                    super.onAuthenticationError(errorCode, errString)
+                    Toast.makeText(applicationContext, "Authentication error: $errString", Toast.LENGTH_SHORT).show()
+                }
+
+                override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                    super.onAuthenticationSucceeded(result)
+                    val email = prefs.getString("CURRENT_USER", "")
+                    if (!email.isNullOrEmpty()) {
+                        Log.i(TAG, "Biometric authentication succeeded for $email")
+                        val intent = Intent(this@LoginActivity, DashboardActivity::class.java)
+                        startActivity(intent)
+                        finish()
+                    } else {
+                        Toast.makeText(applicationContext, "Please login with password first", Toast.LENGTH_SHORT).show()
+                    }
+                }
+
+                override fun onAuthenticationFailed() {
+                    super.onAuthenticationFailed()
+                    Toast.makeText(applicationContext, "Authentication failed", Toast.LENGTH_SHORT).show()
+                }
+            })
+
+        promptInfo = BiometricPrompt.PromptInfo.Builder()
+            .setTitle("Biometric Login")
+            .setSubtitle("Log in using your fingerprint")
+            .setNegativeButtonText("Use account password")
+            .build()
+
+        btnBiometric.setOnClickListener {
+            biometricPrompt.authenticate(promptInfo)
+        }
 
         // Show/Hide password toggle
         cbShow.setOnCheckedChangeListener { _, isChecked ->

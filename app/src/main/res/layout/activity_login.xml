@@ -94,7 +94,6 @@
             android:textColor="?attr/appTextColorPrimary"
             android:buttonTint="?attr/colorPrimary" />
 
-        <!-- Action: Perform Login -->
         <Button
             android:id="@+id/btnLogin"
             android:text="Login"
@@ -103,6 +102,17 @@
             android:layout_height="wrap_content"
             android:backgroundTint="?attr/colorPrimary"
             android:textColor="@color/black"/>
+
+        <ImageButton
+            android:id="@+id/btnBiometric"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_marginTop="16dp"
+            android:src="@android:drawable/ic_lock_idle_lock"
+            android:background="@drawable/glass_card"
+            app:tint="?attr/colorPrimary"
+            android:visibility="gone"
+            android:contentDescription="Fingerprint Login" />
 
         <TextView
             android:id="@+id/tvForgotPassword"

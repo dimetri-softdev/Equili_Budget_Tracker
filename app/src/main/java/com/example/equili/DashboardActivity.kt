@@ -392,6 +392,13 @@ class DashboardActivity : AppCompatActivity() {
         val view = LayoutInflater.from(this).inflate(R.layout.dialog_ai_advisor, null)
         val tvResponse = view.findViewById<TextView>(R.id.tvAiResponse)
         val pbLoading = view.findViewById<ProgressBar>(R.id.pbAiLoading)
+        val ivFace = view.findViewById<ImageView>(R.id.ivAiFace)
+
+        // Try to load the custom face image if it exists
+        val resId = resources.getIdentifier("ai_advisor_face", "drawable", packageName)
+        if (resId != 0 && ivFace != null) {
+            ivFace.setImageResource(resId)
+        }
 
         val dialog = AlertDialog.Builder(this)
             .setView(view)
