@@ -27,17 +27,27 @@ class AiChatActivity : AppCompatActivity() {
     // Local list to track messages during the current session
     private val messages = mutableListOf<ChatMessage>()
 
+    // UI components
+    private lateinit var rvChat: RecyclerView
+    private lateinit var tvTyping: TextView
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // Set the UI layout for this activity
         setContentView(R.layout.activity_ai_chat)
 
         // Initialize UI components by ID
-        val rvChat = findViewById<RecyclerView>(R.id.rvChat)
+        rvChat = findViewById(R.id.rvChat)
         val etMessage = findViewById<EditText>(R.id.etMessage)
         val btnSend = findViewById<ImageButton>(R.id.btnSend)
         val btnBack = findViewById<ImageButton>(R.id.btnBack)
-        val tvTyping = findViewById<TextView>(R.id.tvTyping)
+        tvTyping = findViewById(R.id.tvTyping)
+
+        // Suggestion Chips
+        val suggestSpent = findViewById<TextView>(R.id.suggestSpent)
+        val suggestStatus = findViewById<TextView>(R.id.suggestStatus)
+        val suggestTip = findViewById<TextView>(R.id.suggestTip)
+        val suggestLevel = findViewById<TextView>(R.id.suggestLevel)
 
         // Configure RecyclerView with a linear vertical layout
         adapter = ChatAdapter(messages)
@@ -56,29 +66,41 @@ class AiChatActivity : AppCompatActivity() {
         btnSend.setOnClickListener {
             val text = etMessage.text.toString().trim()
             if (text.isNotEmpty()) {
-                // 1. Add user's message to the list
-                addMessage(text, true)
-                // 2. Clear the input field for next message
+                handleUserMessage(text)
                 etMessage.setText("")
-                // 3. Scroll to the bottom of the chat
-                rvChat.scrollToPosition(messages.size - 1)
-
-                // 4. Show "thinking" indicator to simulate AI processing
-                tvTyping.visibility = View.VISIBLE
-                rvChat.postDelayed({
-                    // 5. Hide typing indicator after delay
-                    tvTyping.visibility = View.GONE
-                    // 6. Generate and display the AI's intelligent response
-                    val response = generateAiResponse(text)
-                    addMessage(response, false)
-                    // 7. Scroll to show the new AI message
-                    rvChat.scrollToPosition(messages.size - 1)
-                }, 1500) // 1.5 second delay for realism
             }
         }
 
+        // Suggestion click listeners
+        suggestSpent.setOnClickListener { handleUserMessage(suggestSpent.text.toString()) }
+        suggestStatus.setOnClickListener { handleUserMessage(suggestStatus.text.toString()) }
+        suggestTip.setOnClickListener { handleUserMessage(suggestTip.text.toString()) }
+        suggestLevel.setOnClickListener { handleUserMessage(suggestLevel.text.toString()) }
+
         // Back button returns the user to the Dashboard
         btnBack.setOnClickListener { finish() }
+    }
+
+    /**
+     * Processes a message from the user, updates the UI, and triggers the AI response.
+     */
+    private fun handleUserMessage(text: String) {
+        // 1. Add user's message to the list
+        addMessage(text, true)
+        // 2. Scroll to the bottom of the chat
+        rvChat.scrollToPosition(messages.size - 1)
+
+        // 3. Show "thinking" indicator to simulate AI processing
+        tvTyping.visibility = View.VISIBLE
+        rvChat.postDelayed({
+            // 4. Hide typing indicator after delay
+            tvTyping.visibility = View.GONE
+            // 5. Generate and display the AI's intelligent response
+            val response = generateAiResponse(text)
+            addMessage(response, false)
+            // 6. Scroll to show the new AI message
+            rvChat.scrollToPosition(messages.size - 1)
+        }, 1200) // 1.2 second delay for realism
     }
 
     /**

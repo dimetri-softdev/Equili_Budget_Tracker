@@ -67,7 +67,73 @@
         android:padding="8dp"
         android:clipToPadding="false"
         app:layout_constraintTop_toBottomOf="@id/aiToolbar"
-        app:layout_constraintBottom_toTopOf="@id/inputArea" />
+        app:layout_constraintBottom_toTopOf="@id/suggestionScroll" />
+
+    <!-- AI Suggestion Chips -->
+    <HorizontalScrollView
+        android:id="@+id/suggestionScroll"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:scrollbars="none"
+        android:paddingHorizontal="8dp"
+        android:paddingBottom="8dp"
+        app:layout_constraintBottom_toTopOf="@id/tvTyping">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/suggestSpent"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="4dp"
+                android:background="@drawable/glass_card"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="6dp"
+                android:text="How much have I spent?"
+                android:textColor="?attr/colorPrimary"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/suggestStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="4dp"
+                android:background="@drawable/glass_card"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="6dp"
+                android:text="How am I doing?"
+                android:textColor="?attr/colorPrimary"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/suggestTip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="4dp"
+                android:background="@drawable/glass_card"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="6dp"
+                android:text="Give me a saving tip"
+                android:textColor="?attr/colorPrimary"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/suggestLevel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="4dp"
+                android:background="@drawable/glass_card"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="6dp"
+                android:text="What is my level?"
+                android:textColor="?attr/colorPrimary"
+                android:textSize="12sp" />
+
+        </LinearLayout>
+    </HorizontalScrollView>
 
     <!-- Typing Indicator -->
     <TextView
