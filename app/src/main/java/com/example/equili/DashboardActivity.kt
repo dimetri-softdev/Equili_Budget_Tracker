@@ -187,7 +187,7 @@ class DashboardActivity : AppCompatActivity() {
         historyBtn.setOnClickListener   { startActivity(Intent(this, HistoryActivity::class.java)) }
         analyticsBtn.setOnClickListener { startActivity(Intent(this, AnalyticsActivity::class.java)) }
 
-        aiAdvisorBtn.setOnClickListener { showAiAdvisorDialog() }
+        aiAdvisorBtn.setOnClickListener { startActivity(Intent(this, AiChatActivity::class.java)) }
 
         goalBtn.setOnClickListener { showGoalDialog() }
 

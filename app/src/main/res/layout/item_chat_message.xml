@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="8dp">
+
+    <!-- AI Message (Left aligned) -->
+    <LinearLayout
+        android:id="@+id/llAiMessage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_gravity="start"
+        android:layout_marginEnd="64dp">
+
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ai_advisor_face"
+            android:layout_marginTop="4dp" />
+
+        <TextView
+            android:id="@+id/tvAiText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/glass_card"
+            android:padding="12dp"
+            android:text="Hello! How can I help you today?"
+            android:textColor="?attr/appTextColorPrimary"
+            android:textSize="14sp" />
+    </LinearLayout>
+
+    <!-- User Message (Right aligned) -->
+    <LinearLayout
+        android:id="@+id/llUserMessage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_gravity="end"
+        android:layout_marginStart="64dp"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/tvUserText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:backgroundTint="?attr/colorPrimary"
+            android:background="@drawable/glass_card"
+            android:padding="12dp"
+            android:text="I have a question."
+            android:textColor="@color/black"
+            android:textSize="14sp" />
+    </LinearLayout>
+
+</LinearLayout>

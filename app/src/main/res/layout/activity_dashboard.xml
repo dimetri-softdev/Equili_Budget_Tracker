@@ -251,9 +251,9 @@
             android:layout_columnWeight="1"
             android:layout_margin="8dp"
             android:backgroundTint="#40FF00FF"
-            android:text="Consult AI"
+            android:text="Ask AI Assistant"
             android:textColor="?attr/appTextColorPrimary"
-            app:icon="@android:drawable/ic_menu_help"
+            app:icon="@android:drawable/ic_menu_send"
             app:iconTint="?attr/appTextColorPrimary" />
 
         <Button
