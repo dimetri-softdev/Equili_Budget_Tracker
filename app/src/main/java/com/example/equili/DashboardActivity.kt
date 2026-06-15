@@ -65,6 +65,7 @@ class DashboardActivity : AppCompatActivity() {
         // -----------------------------------------------------------------------
         val budgetAmount = findViewById<TextView>(R.id.budgetAmount)
         val tvGoals      = findViewById<TextView>(R.id.tvGoals)
+        val tvAllowance  = findViewById<TextView>(R.id.tvDailyAllowance)
         val tvLevel      = findViewById<TextView>(R.id.tvLevel)
         val tvStreak     = findViewById<TextView>(R.id.tvStreak)
         val xpProgress   = findViewById<ProgressBar>(R.id.xpProgress)
@@ -104,6 +105,7 @@ class DashboardActivity : AppCompatActivity() {
             val spent = expenses?.sumOf { it.amount } ?: 0.0
             budgetAmount.text = String.format(Locale.getDefault(), "R%.2f Spent this month", spent)
             updateProgressBar(spent, progressBar)
+            updateDailyAllowance(spent, tvAllowance)
 
             val maxGoal = viewModel.monthlyGoal.value?.maxGoal ?: 0.0
             if (maxGoal > 0) {
@@ -138,9 +140,11 @@ class DashboardActivity : AppCompatActivity() {
                 )
                 val spent = viewModel.expensesInDateRange.value?.sumOf { it.amount } ?: 0.0
                 updateProgressBar(spent, progressBar)
+                updateDailyAllowance(spent, tvAllowance)
                 viewModel.checkBudgetAlert(spent, goal.maxGoal)
             } else {
                 tvGoals.text = "Goal: Not set"
+                tvAllowance.text = "Set a goal to see daily allowance"
             }
         }
 
@@ -193,7 +197,19 @@ class DashboardActivity : AppCompatActivity() {
 
         logoutBtn.setOnClickListener {
             FirebaseAuth.getInstance().signOut()
-            getSharedPreferences("EquiliPrefs", MODE_PRIVATE).edit().clear().apply()
+            // Clear session data but preserve settings like Biometric preference
+            val prefs = getSharedPreferences("EquiliPrefs", MODE_PRIVATE)
+            val isBiometricEnabled = prefs.getBoolean("BIOMETRIC_ENABLED", false)
+            val lastUser = prefs.getString("CURRENT_USER", "")
+
+            prefs.edit().clear().apply()
+
+            // Restore non-session preferences
+            prefs.edit()
+                .putBoolean("BIOMETRIC_ENABLED", isBiometricEnabled)
+                .putString("LAST_LOGGED_IN_EMAIL", lastUser)
+                .apply()
+
             startActivity(Intent(this, MainActivity::class.java))
             finishAffinity()
         }
@@ -448,5 +464,37 @@ class DashboardActivity : AppCompatActivity() {
             else                   -> android.graphics.Color.parseColor("#00FFFF") // Cyan (brand)
         }
         progressBar.progressTintList = android.content.res.ColorStateList.valueOf(tintColor)
+    }
+
+    /**
+     * Feature: Daily Allowance
+     * Calculates how much the user can spend per day for the rest of the month
+     * to stay within their max budget.
+     */
+    private fun updateDailyAllowance(spent: Double, tvAllowance: TextView) {
+        val goal = viewModel.monthlyGoal.value
+        val max = goal?.maxGoal ?: 0.0
+
+        if (max <= 0) {
+            tvAllowance.text = "Set a goal to see daily allowance"
+            return
+        }
+
+        val remaining = max - spent
+        val calendar = Calendar.getInstance()
+        val totalDays = calendar.getActualMaximum(Calendar.DAY_OF_MONTH)
+        val currentDay = calendar.get(Calendar.DAY_OF_MONTH)
+        val daysLeft = (totalDays - currentDay) + 1 // Include today
+
+        val daily = if (remaining > 0) remaining / daysLeft else 0.0
+
+        if (remaining <= 0) {
+            tvAllowance.text = "Over Budget: R0.00 left for today"
+            tvAllowance.setTextColor(android.graphics.Color.parseColor("#FF1744"))
+        } else {
+            tvAllowance.text = String.format(Locale.getDefault(), "Today's Allowance: R%.2f", daily)
+            tvAllowance.setTextColor(ContextCompat.getColor(this, R.color.white)) // Fallback to secondary if needed
+            // Re-apply secondary color from theme if possible, otherwise use a safe default
+        }
     }
 }

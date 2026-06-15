@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    DashboardActivity Layout
+    Core screen of the app displaying spending overview, gamification progress,
+    and navigation to all key features.
+-->
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -6,19 +11,20 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- Global Background -->
+    <!-- Global App Background -->
     <ImageView
         android:id="@+id/bg"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:src="@drawable/background"
         android:scaleType="centerCrop"
+        android:contentDescription="@null"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 
-    <!-- Theme-sensitive overlay -->
+    <!-- Theme-sensitive glassmorphism overlay -->
     <View
         android:layout_width="0dp"
         android:layout_height="0dp"
@@ -28,13 +34,14 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Top Toolbar Area -->
+    <!-- TOOLBAR AREA: Logo, Branding, and Profile/Logout actions -->
     <ImageView
         android:id="@+id/logo"
         android:layout_width="50dp"
         android:layout_height="50dp"
         android:layout_margin="16dp"
         android:src="@drawable/equili_logo"
+        android:contentDescription="Equili Logo"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -51,7 +58,6 @@
         app:layout_constraintStart_toEndOf="@id/logo"
         app:layout_constraintTop_toTopOf="@id/logo" />
 
-    <!-- Action buttons (Profile and Logout) -->
     <ImageButton
         android:id="@+id/btnProfile"
         android:layout_width="wrap_content"
@@ -78,7 +84,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         android:contentDescription="Logout" />
 
-    <!-- GAMIFICATION SECTION: Displays User Level, XP, and Streak -->
+    <!-- GAMIFICATION SECTION: Displays User Level, XP Progress, and Daily Streak -->
     <LinearLayout
         android:id="@+id/gamificationHeader"
         android:layout_width="0dp"
@@ -138,12 +144,13 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text=" 🔥"
-                android:textSize="18sp"/>
+                android:textSize="18sp"
+                android:contentDescription="Streak"/>
         </LinearLayout>
 
     </LinearLayout>
 
-    <!-- BUDGET CARD: Shows monthly spending vs goals -->
+    <!-- BUDGET CARD: Shows monthly spending totals vs max goals and daily allowance -->
     <LinearLayout
         android:id="@+id/budgetCard"
         android:layout_width="0dp"
@@ -192,9 +199,20 @@
             android:progress="0"
             android:progressTint="?attr/colorPrimary" />
 
+        <!-- Daily Coaching Feature: Remaining spendable amount per day -->
+        <TextView
+            android:id="@+id/tvDailyAllowance"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Daily Allowance: R0.00"
+            android:textColor="?attr/appTextColorSecondary"
+            android:textSize="12sp"
+            android:layout_marginTop="12dp"
+            android:layout_gravity="center_horizontal"/>
+
     </LinearLayout>
 
-    <!-- NAVIGATION GRID: Core app features -->
+    <!-- NAVIGATION GRID: Access to core features (Expenses, Analytics, AI) -->
     <GridLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -244,6 +262,7 @@
             android:text="Analytics"
             android:textColor="?attr/appTextColorPrimary" />
 
+        <!-- AI Integration: Conversational financial assistant -->
         <Button
             android:id="@+id/aiAdvisorBtn"
             android:layout_width="0dp"
@@ -269,7 +288,7 @@
 
     </GridLayout>
 
-    <!-- Persistent Bottom Navigation -->
+    <!-- Bottom Navigation Bar for main app sections -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNavigation"
         android:layout_width="0dp"

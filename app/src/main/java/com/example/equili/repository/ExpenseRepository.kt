@@ -11,22 +11,35 @@ import com.google.firebase.database.ValueEventListener
 import kotlinx.coroutines.tasks.await
 
 /**
- * ExpenseRepository now uses Firebase Realtime Database for cloud data storage.
- * It manages expenses, categories, goals, and user profiles securely using the user's UID.
+ * ExpenseRepository handles data operations between the application and Firebase Realtime Database.
+ * It follows the Repository Pattern to abstract data sources and provide a clean API to the ViewModel.
+ *
+ * Data Structure in Firebase:
+ * users/
+ *   {uid}/
+ *     profile/   -> User details, level, XP, badges
+ *     expenses/  -> List of logged expenses
+ *     categories/ -> User-defined categories
+ *     goals/     -> Monthly budget goals
  */
 class ExpenseRepository {
 
+    // Reference to the root of the Realtime Database
     private val db = FirebaseDatabase.getInstance().reference
-    private val auth = FirebaseAuth.getInstance()
 
-    /** Returns the current logged-in user's UID or an empty string. */
+    // Instance of Firebase Auth to retrieve user identity
+    private var auth: FirebaseAuth = FirebaseAuth.getInstance()
+
+    /** Returns the unique identifier (UID) of the currently authenticated user. */
     private fun getUid(): String = auth.currentUser?.uid ?: ""
 
-    // --- Expense Operations ---
+    // =========================================================================
+    // EXPENSE OPERATIONS
+    // =========================================================================
 
     /**
-     * Saves or updates an expense in the cloud.
-     * Path: users/{uid}/expenses/{expenseId}
+     * Inserts a new expense or updates an existing one in the cloud.
+     * Uses [push()] for new entries to generate a unique ID.
      */
     suspend fun insertExpense(expense: ExpenseModel) {
         val uid = getUid()
@@ -44,13 +57,19 @@ class ExpenseRepository {
         }
     }
 
+    /**
+     * Deletes an expense by its unique ID from the user's expense list.
+     */
     suspend fun deleteExpense(expense: ExpenseModel) {
         val uid = getUid()
         if (uid.isEmpty() || expense.id.isEmpty()) return
         db.child("users").child(uid).child("expenses").child(expense.id).removeValue().await()
     }
 
-    /** Retrieves all user expenses as LiveData (Real-time). */
+    /**
+     * Retrieves all user expenses and listens for real-time updates.
+     * Results are sorted by date in descending order (newest first).
+     */
     fun getAllExpenses(): LiveData<List<ExpenseModel>> {
         val liveData = MutableLiveData<List<ExpenseModel>>()
         val uid = getUid()
@@ -73,7 +92,10 @@ class ExpenseRepository {
         return liveData
     }
 
-    /** Retrieves expenses filtered by date range. */
+    /**
+     * Retrieves a list of expenses filtered within a specific timestamp range.
+     * Useful for monthly dashboard views and analytics.
+     */
     fun getExpensesInRange(start: Long, end: Long): LiveData<List<ExpenseModel>> {
         val liveData = MutableLiveData<List<ExpenseModel>>()
         val uid = getUid()
@@ -96,7 +118,10 @@ class ExpenseRepository {
         return liveData
     }
 
-    /** Aggregates category totals from Realtime DB. */
+    /**
+     * Aggregates spending totals by category for a given date range.
+     * Returns a list of [CategoryTotal] objects.
+     */
     fun getCategoryTotalsInRange(start: Long, end: Long): LiveData<List<CategoryTotal>> {
         val result = MutableLiveData<List<CategoryTotal>>()
         val uid = getUid()
@@ -121,8 +146,14 @@ class ExpenseRepository {
         return result
     }
 
-    // --- Category Operations ---
+    // =========================================================================
+    // CATEGORY OPERATIONS
+    // =========================================================================
 
+    /**
+     * Retrieves all spending categories available for the user.
+     * If no categories exist (e.g., for a new user), it automatically populates defaults.
+     */
     fun getAllCategories(): LiveData<List<CategoryModel>> {
         val liveData = MutableLiveData<List<CategoryModel>>()
         val uid = getUid()
@@ -137,7 +168,6 @@ class ExpenseRepository {
                             child.getValue(CategoryModel::class.java)?.let { items.add(it) }
                         }
                     } else {
-                        // Populate default categories if none exist in the cloud
                         populateDefaultCategories(uid)
                     }
                     liveData.value = items.sortedBy { it.name }
@@ -147,7 +177,9 @@ class ExpenseRepository {
         return liveData
     }
 
-    /** Helper to populate initial categories for a new user. */
+    /**
+     * Populates the database with a default set of expense categories for a new user.
+     */
     private fun populateDefaultCategories(uid: String) {
         val defaults = mapOf(
             "Food" to "ic_food",
@@ -166,6 +198,9 @@ class ExpenseRepository {
         }
     }
 
+    /**
+     * Inserts a new custom category into the user's cloud profile.
+     */
     suspend fun insertCategory(category: CategoryModel) {
         val uid = getUid()
         if (uid.isEmpty()) return
@@ -181,11 +216,13 @@ class ExpenseRepository {
         }
     }
 
-    // --- Goal Operations ---
+    // =========================================================================
+    // GOAL OPERATIONS
+    // =========================================================================
 
     /**
-     * Retrieves the goal for a specific month.
-     * Path: users/{uid}/goals/{month}
+     * Retrieves the budget goals (min/max) for a specific month.
+     * Month format: YYYY-MM
      */
     fun getMonthlyGoal(month: String): LiveData<GoalModel?> {
         val liveData = MutableLiveData<GoalModel?>()
@@ -202,7 +239,10 @@ class ExpenseRepository {
         return liveData
     }
 
-    /** One-shot fetch of a goal for transition logic. */
+    /**
+     * One-shot fetch of a specific month\u0027s goal.
+     * Primarily used for month-to-month data migration/carry-over logic.
+     */
     suspend fun getGoalSnapshot(month: String): GoalModel? {
         val uid = getUid()
         if (uid.isEmpty()) return null
@@ -211,7 +251,7 @@ class ExpenseRepository {
     }
 
     /**
-     * Saves or updates a goal for its specific month.
+     * Saves or updates the budget goals for a specific month.
      */
     suspend fun updateGoal(goal: GoalModel) {
         val uid = getUid()
@@ -220,14 +260,22 @@ class ExpenseRepository {
         db.child("users").child(uid).child("goals").child(goal.month).setValue(goal).await()
     }
 
-    // --- User Profile Operations ---
+    // =========================================================================
+    // USER PROFILE & GAMIFICATION
+    // =========================================================================
 
+    /**
+     * Registers a new user profile in the database upon successful authentication.
+     */
     suspend fun registerUser(user: UserModel) {
         if (user.uid.isNotEmpty()) {
             db.child("users").child(user.uid).child("profile").setValue(user).await()
         }
     }
 
+    /**
+     * Searches the database for a user profile matching the given email.
+     */
     suspend fun getUserByEmail(email: String): UserModel? {
         val snapshot = db.child("users").get().await()
         for (userSnapshot in snapshot.children) {
@@ -237,6 +285,9 @@ class ExpenseRepository {
         return null
     }
 
+    /**
+     * Returns a real-time LiveData stream for the currently logged-in user\u0027s profile.
+     */
     fun getCurrentUserLiveData(): LiveData<UserModel?> {
         val liveData = MutableLiveData<UserModel?>()
         val uid = getUid()
@@ -252,6 +303,9 @@ class ExpenseRepository {
         return liveData
     }
 
+    /**
+     * Updates user profile fields (Level, XP, Address, etc.) in the cloud.
+     */
     suspend fun updateUser(user: UserModel) {
         val uid = getUid()
         if (uid.isEmpty()) return
@@ -259,18 +313,17 @@ class ExpenseRepository {
     }
 
     /**
-     * Awards a badge to the current user if they don't already have it.
-     * Writes a single badge entry into the user's badges map in Firebase.
-     * Returns true if the badge was newly awarded, false if already owned.
+     * Awards an achievement badge to the user.
+     * Checks for prior ownership to prevent redundant event triggers in the UI.
      */
-    suspend fun awardBadge(badge: com.example.equili.data.model.BadgeModel): Boolean {
+    suspend fun awardBadge(badge: BadgeModel): Boolean {
         val uid = getUid()
         if (uid.isEmpty()) return false
 
-        // Only write the badge if not already earned (avoid duplicate award events)
+        // Atomically check if already earned
         val snapshot = db.child("users").child(uid).child("profile")
             .child("badges").child(badge.id).get().await()
-        val existing = snapshot.getValue(com.example.equili.data.model.BadgeModel::class.java)
+        val existing = snapshot.getValue(BadgeModel::class.java)
         if (existing?.earned == true) return false
 
         db.child("users").child(uid).child("profile")

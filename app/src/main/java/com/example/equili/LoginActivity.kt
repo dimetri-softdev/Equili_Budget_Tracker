@@ -7,6 +7,7 @@ import android.widget.*
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.biometric.BiometricPrompt
+import androidx.biometric.BiometricManager
 import androidx.core.content.ContextCompat
 import com.example.equili.ui.viewModel.ExpenseViewModel
 import com.google.firebase.auth.FirebaseAuth
@@ -43,11 +44,27 @@ class LoginActivity : AppCompatActivity() {
         val tvForgotPassword = findViewById<TextView>(R.id.tvForgotPassword)
         val btnBack = findViewById<ImageButton>(R.id.btnBack)
 
-        // Check if biometric is enabled
+        // Check if biometric is enabled and supported
         val prefs = getSharedPreferences("EquiliPrefs", MODE_PRIVATE)
         val isBiometricEnabled = prefs.getBoolean("BIOMETRIC_ENABLED", false)
-        if (isBiometricEnabled) {
-            btnBiometric.visibility = Button.VISIBLE
+        val lastEmail = prefs.getString("LAST_LOGGED_IN_EMAIL", "")
+
+        val biometricManager = BiometricManager.from(this)
+        val canAuthenticate = biometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG) == BiometricManager.BIOMETRIC_SUCCESS
+
+        if (isBiometricEnabled && canAuthenticate) {
+            btnBiometric.visibility = android.view.View.VISIBLE
+            // Pre-fill email if we have it
+            if (!lastEmail.isNullOrEmpty()) {
+                etUser.setText(lastEmail)
+            }
+
+            // Auto-trigger biometric prompt for a smoother experience
+            btnBiometric.postDelayed({
+                biometricPrompt.authenticate(promptInfo)
+            }, 500)
+        } else {
+            btnBiometric.visibility = android.view.View.GONE
         }
 
         executor = ContextCompat.getMainExecutor(this)
@@ -60,14 +77,19 @@ class LoginActivity : AppCompatActivity() {
 
                 override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
                     super.onAuthenticationSucceeded(result)
-                    val email = prefs.getString("CURRENT_USER", "")
+                    val email = prefs.getString("LAST_LOGGED_IN_EMAIL", "") ?: prefs.getString("CURRENT_USER", "")
+
                     if (!email.isNullOrEmpty()) {
                         Log.i(TAG, "Biometric authentication succeeded for $email")
-                        val intent = Intent(this@LoginActivity, DashboardActivity::class.java)
-                        startActivity(intent)
-                        finish()
+                        etUser.setText(email)
+                        Toast.makeText(applicationContext, "Biometric Verified. Please enter your password.", Toast.LENGTH_LONG).show()
+                        etPass.requestFocus()
+
+                        // Note: To make this a TRUE "one-tap" login, you would need to store
+                        // the user's password in the Android Keystore during their first login.
+                        // For now, we use biometrics as a secure identity verification and auto-fill.
                     } else {
-                        Toast.makeText(applicationContext, "Please login with password first", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(applicationContext, "Please login with password once to link biometrics", Toast.LENGTH_SHORT).show()
                     }
                 }
 
@@ -124,6 +146,7 @@ class LoginActivity : AppCompatActivity() {
                         // This allows other parts of the app to know who is logged in
                         getSharedPreferences("EquiliPrefs", MODE_PRIVATE).edit()
                             .putString("CURRENT_USER", email)
+                            .putString("LAST_LOGGED_IN_EMAIL", email)
                             .apply()
 
                         // Navigate to the dashboard

@@ -2,6 +2,7 @@
 <!--
     Layout for LoginActivity.
     Allows existing users to sign in using their email (username) and password.
+    Supports Biometric Authentication for quick access.
 -->
 <FrameLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
@@ -9,14 +10,15 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- App-wide background image -->
+    <!-- Global App Background Image -->
     <ImageView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:src="@drawable/background"
-        android:scaleType="centerCrop"/>
+        android:scaleType="centerCrop"
+        android:contentDescription="@null"/>
 
-    <!-- Theme-sensitive dark overlay -->
+    <!-- Dynamic Dark Overlay (Changes based on theme) -->
     <View
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -29,7 +31,7 @@
         android:orientation="vertical"
         android:padding="24dp">
 
-        <!-- Back Button -->
+        <!-- Toolbar: Back button to return to the landing screen -->
         <ImageButton
             android:id="@+id/btnBack"
             android:layout_width="wrap_content"
@@ -40,17 +42,19 @@
             app:tint="?attr/appTextColorPrimary"
             android:contentDescription="Back to Main" />
 
+        <!-- Spacer to push content towards the center -->
         <View
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1" />
 
-        <!-- Branding: Logo and App Name -->
+        <!-- Brand Identity: Logo and Application Title -->
         <ImageView
             android:layout_width="100dp"
             android:layout_height="100dp"
             android:layout_marginBottom="16dp"
-            android:src="@drawable/equili_logo" />
+            android:src="@drawable/equili_logo"
+            android:contentDescription="Equili Logo" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -60,7 +64,7 @@
             android:textStyle="bold"
             android:textColor="?attr/colorPrimary"/>
 
-        <!-- Credentials Input -->
+        <!-- Input Section: Email/Username field -->
         <EditText
             android:id="@+id/etUsername"
             android:layout_width="match_parent"
@@ -70,8 +74,11 @@
             android:textColorHint="?attr/appTextColorSecondary"
             android:layout_marginTop="32dp"
             android:padding="12dp"
-            android:background="@drawable/glass_card"/>
+            android:background="@drawable/glass_card"
+            android:importantForAutofill="no"
+            android:inputType="textEmailAddress"/>
 
+        <!-- Input Section: Password field with masking -->
         <EditText
             android:id="@+id/etPassword"
             android:layout_width="match_parent"
@@ -82,8 +89,10 @@
             android:textColor="?attr/appTextColorPrimary"
             android:textColorHint="?attr/appTextColorSecondary"
             android:padding="12dp"
-            android:background="@drawable/glass_card"/>
+            android:background="@drawable/glass_card"
+            android:importantForAutofill="no"/>
 
+        <!-- Toggle for password visibility -->
         <CheckBox
             android:id="@+id/cbShowPassword"
             android:layout_width="wrap_content"
@@ -94,6 +103,7 @@
             android:textColor="?attr/appTextColorPrimary"
             android:buttonTint="?attr/colorPrimary" />
 
+        <!-- Main Action: Standard Password Login -->
         <Button
             android:id="@+id/btnLogin"
             android:text="Login"
@@ -103,6 +113,7 @@
             android:backgroundTint="?attr/colorPrimary"
             android:textColor="@color/black"/>
 
+        <!-- Quick Access: Biometric (Fingerprint/Face) Login Button -->
         <ImageButton
             android:id="@+id/btnBiometric"
             android:layout_width="60dp"
@@ -114,6 +125,7 @@
             android:visibility="gone"
             android:contentDescription="Fingerprint Login" />
 
+        <!-- Recovery: Forgot Password link -->
         <TextView
             android:id="@+id/tvForgotPassword"
             android:layout_width="wrap_content"
@@ -124,6 +136,12 @@
             android:textSize="14sp"
             android:clickable="true"
             android:focusable="true" />
+
+        <!-- Bottom spacer -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
 
     </LinearLayout>
 

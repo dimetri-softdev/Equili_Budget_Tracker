@@ -10,16 +10,26 @@ import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.*
 
+/**
+ * ExpenseViewModel manages the UI-related data in a lifecycle-conscious way.
+ * It serves as a bridge between the [ExpenseRepository] and the UI (Activities/Fragments).
+ */
 class ExpenseViewModel(application: Application) : AndroidViewModel(application) {
 
+    // Repository for data operations (Firebase / Local)
     private val repository = ExpenseRepository()
 
+    // Current month identifier for goal tracking (Format: YYYY-MM)
     private val currentMonth = SimpleDateFormat("yyyy-MM", Locale.getDefault()).format(Date())
 
+    // Observable states for filtering and sorting
     private val dateRange   = MutableLiveData<Pair<Long, Long>>()
     private val searchQuery = MutableLiveData("")
     private val sortOption  = MutableLiveData(SortOption.DATE_DESC)
 
+    /**
+     * Supported sorting criteria for expense lists.
+     */
     enum class SortOption {
         DATE_DESC, DATE_ASC, AMOUNT_DESC, AMOUNT_ASC, CATEGORY_ASC
     }
@@ -39,21 +49,18 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
 
     /**
      * Emits a budget warning percentage (e.g. 82) when the user crosses the 80% threshold.
-     * The UI should show a warning dialog and call [consumeBudgetWarning] after displaying.
      */
     private val _budgetWarningEvent = MutableLiveData<Int?>(null)
     val budgetWarningEvent: LiveData<Int?> get() = _budgetWarningEvent
 
     /**
      * Emits the new level number when the user levels up.
-     * The UI should trigger the Level Up animation and call [consumeLevelUpEvent] after displaying.
      */
     private val _levelUpEvent = MutableLiveData<Int?>(null)
     val levelUpEvent: LiveData<Int?> get() = _levelUpEvent
 
     /**
      * Emits a [BadgeModel] when a badge is newly awarded.
-     * The UI should show the badge dialog and call [consumeBadgeEvent] after displaying.
      */
     private val _badgeUnlockedEvent = MutableLiveData<BadgeModel?>(null)
     val badgeUnlockedEvent: LiveData<BadgeModel?> get() = _badgeUnlockedEvent
@@ -68,12 +75,15 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
     // Core Data
     // -----------------------------------------------------------------------------------------
 
+    /**
+     * LiveData stream of expenses within the selected [dateRange].
+     */
     val expensesInDateRange: LiveData<List<ExpenseModel>> = dateRange.switchMap { range ->
         repository.getExpensesInRange(range.first, range.second)
     }
 
     /**
-     * Expenses filtered by search query and sorted by selected option.
+     * Reactive stream that applies search filtering and sorting logic to the expenses list.
      */
     val filteredExpenses = MediatorLiveData<List<ExpenseModel>>().apply {
         val update = {
@@ -103,6 +113,7 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
     }
 
     init {
+        // Initialize date range to the current month by default
         val start = Calendar.getInstance().apply {
             set(Calendar.DAY_OF_MONTH, 1)
             set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0)
@@ -123,22 +134,27 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
         })
     }
 
+    // Setters for UI controls
     fun setDateRange(start: Long, end: Long) { dateRange.value = start to end }
     fun setSearchQuery(query: String)        { searchQuery.value = query }
     fun setSortOption(option: SortOption)    { sortOption.value = option }
 
-    /** Not needed now because Firebase Auth manages the session. Kept for legacy compatibility. */
+    /** Legacy placeholder for compatibility. */
     fun setCurrentUser(email: String) {}
 
+    // Methods to reset one-shot events after consumption
     fun consumeBudgetWarning() { _budgetWarningEvent.value = null }
     fun consumeLevelUpEvent()  { _levelUpEvent.value = null }
     fun consumeBadgeEvent()    { _badgeUnlockedEvent.value = null }
     fun consumeNewMonthEvent() { _newMonthEvent.value = null }
 
     // -----------------------------------------------------------------------------------------
-    // MONTH TRANSITION
+    // MONTH TRANSITION LOGIC
     // -----------------------------------------------------------------------------------------
 
+    /**
+     * Checks if the app has entered a new month and carries over the budget goal if necessary.
+     */
     private fun checkAndCarryOverGoal(user: UserModel) = viewModelScope.launch {
         if (user.lastProcessedMonth != currentMonth) {
             val previousMonth = user.lastProcessedMonth
@@ -155,21 +171,23 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
                     }
                 }
 
-                // 3. Update user's last processed month
+                // 3. Update user's last processed month in Firebase
                 repository.updateUser(user.copy(lastProcessedMonth = currentMonth))
             }
 
-            // 4. Notify UI of new month (can be used to show a toast or dialog)
+            // 4. Notify UI of new month
             _newMonthEvent.postValue(currentMonth)
         }
     }
 
     // -----------------------------------------------------------------------------------------
-    // CRUD
+    // CRUD OPERATIONS
     // -----------------------------------------------------------------------------------------
 
+    /**
+     * Inserts a new expense and updates gamification stats.
+     */
     fun insertExpense(expense: ExpenseModel) = viewModelScope.launch {
-        // Snapshot user on Main thread before switching to IO
         val userSnapshot = currentUser.value
         withContext(Dispatchers.IO) {
             repository.insertExpense(expense)
@@ -179,16 +197,25 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
         checkFirstExpenseBadge(userSnapshot)
     }
 
+    /**
+     * Deletes an expense from the database.
+     */
     fun deleteExpense(expense: ExpenseModel) = viewModelScope.launch(Dispatchers.IO) {
         repository.deleteExpense(expense)
     }
 
+    /**
+     * Adds a new custom category.
+     */
     fun insertCategory(category: CategoryModel) = viewModelScope.launch {
         val userSnapshot = currentUser.value
         withContext(Dispatchers.IO) { repository.insertCategory(category) }
         addXp(25, userSnapshot)
     }
 
+    /**
+     * Updates the monthly budget goals.
+     */
     fun updateGoal(min: Double, max: Double) = viewModelScope.launch {
         val userSnapshot = currentUser.value
         withContext(Dispatchers.IO) {
@@ -197,6 +224,9 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
         addXp(20, userSnapshot)
     }
 
+    /**
+     * Retrieves spending totals grouped by category.
+     */
     fun getCategoryTotalsInRange(start: Long, end: Long): LiveData<List<CategoryTotal>> =
         repository.getCategoryTotalsInRange(start, end)
 
@@ -205,9 +235,12 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
     suspend fun getUserByEmail(email: String): UserModel? = repository.getUserByEmail(email)
 
     // -----------------------------------------------------------------------------------------
-    // BUDGET ALERT
+    // BUDGET ALERT & GAMIFICATION
     // -----------------------------------------------------------------------------------------
 
+    /**
+     * Triggers a warning event if spending exceeds 80% of the max goal.
+     */
     fun checkBudgetAlert(spent: Double, maxGoal: Double) {
         if (maxGoal <= 0) return
         val percent = ((spent / maxGoal) * 100).toInt()
@@ -216,6 +249,9 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
+    /**
+     * Logic for awarding "Budget Hero" and "Savvy Saver" badges based on discipline.
+     */
     fun checkUnderBudgetBadge(spent: Double, maxGoal: Double) = viewModelScope.launch {
         val user = currentUser.value ?: return@launch
         val today = Calendar.getInstance().apply {
@@ -224,20 +260,20 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
         }.timeInMillis
 
         if (maxGoal > 0 && spent < maxGoal) {
-            // 1. Award one-time "Budget Hero" badge
+            // Award "Budget Hero" for staying under max budget
             if (!user.hasBadge(BadgeType.UNDER_BUDGET)) {
                 val badge = BadgeType.UNDER_BUDGET.toEarnedBadge()
                 val awarded = withContext(Dispatchers.IO) { repository.awardBadge(badge) }
                 if (awarded) _badgeUnlockedEvent.postValue(badge)
             }
 
-            // 2. Increment "Savvy Saver" counter only once per day
+            // Increment under-budget streak
             if (user.lastBudgetCheckDate < today) {
                 val newDays = user.underBudgetDays + 1
                 val updatedUser = user.copy(underBudgetDays = newDays, lastBudgetCheckDate = today)
                 withContext(Dispatchers.IO) { repository.updateUser(updatedUser) }
 
-                // Award SAVER_7 after 7 consecutive under-budget days
+                // Award SAVER_7 badge
                 if (newDays >= 7 && !user.hasBadge(BadgeType.SAVER_7)) {
                     val saverBadge = BadgeType.SAVER_7.toEarnedBadge()
                     val awarded = withContext(Dispatchers.IO) { repository.awardBadge(saverBadge) }
@@ -245,7 +281,7 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
                 }
             }
         } else if (maxGoal > 0 && spent >= maxGoal) {
-            // Reset saver streak if they go over budget
+            // Reset streak on overspending
             if (user.underBudgetDays > 0) {
                 withContext(Dispatchers.IO) {
                     repository.updateUser(user.copy(underBudgetDays = 0, lastBudgetCheckDate = today))
@@ -254,10 +290,9 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
-    // -----------------------------------------------------------------------------------------
-    // XP & LEVELLING (thread-safe: user snapshot passed in from Main)
-    // -----------------------------------------------------------------------------------------
-
+    /**
+     * Core progression logic: Increments XP and handles Level-Up events.
+     */
     private fun addXp(amount: Int, userSnapshot: UserModel? = null) = viewModelScope.launch {
         val userValue = userSnapshot ?: currentUser.value ?: return@launch
         var newXp     = userValue.xp + amount
@@ -275,10 +310,9 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
         withContext(Dispatchers.IO) { repository.updateUser(updatedUser) }
     }
 
-    // -----------------------------------------------------------------------------------------
-    // STREAK
-    // -----------------------------------------------------------------------------------------
-
+    /**
+     * Logic for maintaining the activity streak.
+     */
     private fun updateStreak(userSnapshot: UserModel? = null) = viewModelScope.launch {
         val userValue = userSnapshot ?: currentUser.value ?: return@launch
         val today = Calendar.getInstance().apply {
@@ -298,10 +332,9 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
     }
 
     // -----------------------------------------------------------------------------------------
-    // BADGE CHECKS
+    // BADGE ELIGIBILITY CHECKS
     // -----------------------------------------------------------------------------------------
 
-    /** Awards the "First Step" badge on the very first expense logged. */
     private fun checkFirstExpenseBadge(userSnapshot: UserModel? = null) = viewModelScope.launch {
         val user = userSnapshot ?: currentUser.value ?: return@launch
         if (!user.hasBadge(BadgeType.FIRST_EXPENSE)) {
@@ -311,7 +344,6 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
-    /** Awards the "On Fire 🔥" badge when the user hits a 7-day streak. */
     private fun checkStreakBadge(streak: Int, userSnapshot: UserModel? = null) = viewModelScope.launch {
         if (streak >= 7) {
             val user    = userSnapshot ?: currentUser.value ?: return@launch
@@ -323,8 +355,6 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
-
-    /** Awards the "Rising Star" badge when the user reaches level 5. */
     private fun checkLevelBadge(level: Int, userSnapshot: UserModel? = null) = viewModelScope.launch {
         if (level >= 5) {
             val user    = userSnapshot ?: currentUser.value ?: return@launch

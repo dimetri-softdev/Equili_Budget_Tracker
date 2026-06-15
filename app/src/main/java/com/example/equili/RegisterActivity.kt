@@ -142,6 +142,7 @@ class RegisterActivity : AppCompatActivity() {
                         // Save the user email to SharedPreferences to maintain the session
                         getSharedPreferences("EquiliPrefs", MODE_PRIVATE).edit()
                             .putString("CURRENT_USER", email)
+                            .putString("LAST_LOGGED_IN_EMAIL", email)
                             .apply()
 
                         Toast.makeText(this@RegisterActivity, "Welcome, $username! Registration Successful", Toast.LENGTH_SHORT).show()
