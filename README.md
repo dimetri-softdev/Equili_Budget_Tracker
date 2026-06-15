@@ -11,7 +11,13 @@ Watch the full demonstration of the app here: [Equili App Overview](https://yout
 - **NELSON DE VOS**
 - **SILINDOKUHLE GQUKANI**
 
-## 🚀 Features
+## 🌟 Advanced Features (Original Contributions)
+The following features were developed and integrated independently of the core assignment requirements:
+
+- **🔐 Advanced Biometric Security:** A secure login system utilizing Fingerprint/Face ID. This feature includes hardware support detection, automatic prompts for returning users, and secure account linking. (Developed by Dimetri Petes).
+- **🤖 Intelligent AI Financial Advisor:** A custom-built AI engine that analyzes real-time spending data, budget goals, and gamification progress. It provides personalized coaching, spending alerts, and financial status reports via a conversational chat interface. (Developed by Dimetri Petes).
+
+## 🚀 Core Features
 
 - **Personalized Dashboard:** Get an instant overview of your monthly spending, budget progress, and gamification stats.
 - **Smart Expense Logging:** Quickly add expenses with titles, amounts, categories, and optional receipt photo attachments.
@@ -20,17 +26,17 @@ Watch the full demonstration of the app here: [Equili App Overview](https://yout
 - **Custom Categories:** Create and manage your own spending categories to fit your lifestyle.
 - **Monthly Goals:** Set minimum and maximum spending targets to keep your budget on track.
 - **Historical Records:** A full, filterable list of all past transactions with the ability to edit or delete entries.
-- **Secure Local Storage:** All your data is stored securely on your device using the Room Persistence Library.
-- **Modern UI:** Features a sleek "Glassmorphism" design with full support for both Light and Dark modes.
+- **Daily Spending Allowance:** Dynamically calculates how much you can spend today based on your remaining monthly budget.
+- **Cloud Synchronization:** Powered by Firebase for real-time data sync across devices and secure authentication.
 
 ## 🛠️ Tech Stack
 
-- **Language:** [Kotlin](https://kotlinlang.org/)
-- **Database:** [Room Persistence Library](https://developer.android.com/training/data-storage/room)
+- **Language:** [Kotlin 2.4.0](https://kotlinlang.org/)
+- **Database:** [Firebase Realtime Database](https://firebase.google.com/products/realtime-database) & [Room Persistence Library](https://developer.android.com/training/data-storage/room)
+- **Auth:** Firebase Authentication
 - **Architecture:** MVVM (Model-View-ViewModel)
-- **UI Components:** [Material Design 3](https://m3.material.io/), ViewBinding
+- **UI Components:** [Material Design 3](https://m3.material.io/), ViewBinding, Glassmorphism Design
 - **Charts:** [MPAndroidChart](https://github.com/PhilJay/MPAndroidChart)
-- **CI/CD:** GitHub Actions for automated testing and APK builds.
 
 ## 🧪 Automated Testing
 
@@ -56,15 +62,9 @@ The project includes unit tests for core logic, such as password complexity vali
 
 This project utilizes several open-source libraries and follows best practices from the Android developer community:
 
-### Libraries
-- **[MPAndroidChart](https://github.com/PhilJay/MPAndroidChart):** Used for generating the spending breakdown charts.
-- **[Jetpack Room](https://developer.android.com/jetpack/androidx/releases/room):** Local database management.
-- **[Material Components for Android](https://github.com/material-components/material-components-android):** UI elements and themes.
-
-### Documentation & Learning Resources
-- **[Android Developers Documentation](https://developer.android.com/):** For Room, ViewModel, LiveData, and FileProvider implementations.
-- **[Kotlin Coroutines](https://kotlinlang.org/docs/coroutines-overview.html):** For asynchronous database operations.
-- **[Google Material Symbols & Icons](https://fonts.google.com/icons):** For app icons.
+- **[MPAndroidChart](https://github.com/PhilJay/MPAndroidChart):** Generating spending breakdown charts.
+- **[Firebase](https://firebase.google.com/):** Cloud data management and authentication.
+- **[Android Biometric Library](https://developer.android.com/training/sign-in/biometric-auth):** For the original biometric integration.
 
 ---
 *Developed as part of a personal finance education initiative.*
